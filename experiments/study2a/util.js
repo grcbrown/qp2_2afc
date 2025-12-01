@@ -11,7 +11,7 @@ function create_tv_array(json_object) {
     return tv_array;
 }
 
-function DEMOsampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 2) {
+function DEMOsampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 4) {
     // --- Group by ID ---
     const byId = {};
     for (const t of trial_objects) {
