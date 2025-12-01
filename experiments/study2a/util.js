@@ -11,7 +11,71 @@ function create_tv_array(json_object) {
     return tv_array;
 }
 
-function sampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 2) {
+function DEMOsampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 2) {
+    // --- Group by ID ---
+    const byId = {};
+    for (const t of trial_objects) {
+        if (!byId[t.id]) byId[t.id] = [];
+    byId[t.id].push(t);
+    }
+
+    const allIds = Object.keys(byId);
+
+    // --- Randomly select a subset of IDs for the demo ---
+    // Need blocks × perSpeaker unique IDs
+    const requiredIdsCount = blocks * perSpeaker;
+
+    if (allIds.length < requiredIdsCount) {
+        throw new Error(`Not enough unique IDs: have ${allIds.length}, need ${requiredIdsCount}`);
+    }
+
+    // Shuffle all IDs
+    const shuffledIds = [...allIds].sort(() => Math.random() - 0.5);
+
+    // Take only the first requiredIdsCount IDs
+    const demoIds = shuffledIds.slice(0, requiredIdsCount);
+
+    // --- Partition IDs into blocks ---
+    const idBlocks = [];
+    for (let b = 0; b < blocks; b++) {
+        idBlocks.push(demoIds.slice(b * perSpeaker, (b + 1) * perSpeaker));
+    }
+
+    // --- Find speakers ---
+    const speakers = [...new Set(trial_objects.map(o => o.speaker))];
+
+    // --- Produce one sample per block ---
+    const samples = [];
+
+    for (let b = 0; b < blocks; b++) {
+        const block = idBlocks[b];
+        const sample = [];
+        const speakerCounts = {};
+        speakers.forEach(s => speakerCounts[s] = 0);
+
+        // For each ID in this block
+        for (const id of block) {
+            const group = [...byId[id]].sort(() => Math.random() - 0.5);
+
+            for (const item of group) {
+                const s = item.speaker;
+
+                if (speakerCounts[s] < perSpeaker) {
+                    sample.push(item);
+                    speakerCounts[s]++;
+                    break; // do not reuse ID
+                }
+            }
+        }
+
+        samples.push(sample);
+    }
+
+    return samples;
+}
+
+
+function sampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 10) {
     // group by ID
     const byId = {};
     for (const t of trial_objects) {
