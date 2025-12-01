@@ -543,7 +543,7 @@ const block_4 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">SOCIALLY GRACEFUL<br><br><b>D</b></div><div class=\"option\">SOCIALLY AWKWARD<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">SOCIALLY<br>GRACEFUL<br><b>D</b></div><div class=\"option\">SOCIALLY<br>AWKWARD<br><b>K</b></div></div>`,
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
@@ -655,7 +655,7 @@ const block_8 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">SOCIALLY AWKWARD<br><br><b>D</b></div><div class=\"option\">SOCIALLY GRACEFUL<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">SOCIALLY<br>AWKWARD<br><b>D</b></div><div class=\"option\">SOCIALLY<br>GRACEFUL<br><b>K</b></div></div>`,
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
