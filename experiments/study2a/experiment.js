@@ -446,7 +446,7 @@ const instructions = {
 
 timeline.push(instructions);
 
-stim_list = DEMOsampleBalancedBlocks(trial_objects, 8, 4); //using DEMO SAMPLING - CHANGE LATER
+stim_list = DEMOsampleBalancedBlocks(trial_objects, 8, 2); //using DEMO SAMPLING - CHANGE LATER
 
 //LISTENING TRIALS
 //BLOCK 1

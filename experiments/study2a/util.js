@@ -11,69 +11,48 @@ function create_tv_array(json_object) {
     return tv_array;
 }
 
-function DEMOsampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 4) {
-    // --- Group by ID ---
-    const byId = {};
+function DEMOsampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 2) {
+    // --- Group by speaker ---
+    const bySpeaker = {};
     for (const t of trial_objects) {
-        if (!byId[t.id]) byId[t.id] = [];
-    byId[t.id].push(t);
+        if (!bySpeaker[t.speaker]) bySpeaker[t.speaker] = [];
+        bySpeaker[t.speaker].push(t);
     }
 
-    const allIds = Object.keys(byId);
-
-    // --- Randomly select a subset of IDs for the demo ---
-    // Need blocks × perSpeaker unique IDs
-    const requiredIdsCount = blocks * perSpeaker;
-
-    if (allIds.length < requiredIdsCount) {
-        throw new Error(`Not enough unique IDs: have ${allIds.length}, need ${requiredIdsCount}`);
-    }
-
-    // Shuffle all IDs
-    const shuffledIds = [...allIds].sort(() => Math.random() - 0.5);
-
-    // Take only the first requiredIdsCount IDs
-    const demoIds = shuffledIds.slice(0, requiredIdsCount);
-
-    // --- Partition IDs into blocks ---
-    const idBlocks = [];
-    for (let b = 0; b < blocks; b++) {
-        idBlocks.push(demoIds.slice(b * perSpeaker, (b + 1) * perSpeaker));
-    }
-
-    // --- Find speakers ---
-    const speakers = [...new Set(trial_objects.map(o => o.speaker))];
-
-    // --- Produce one sample per block ---
+    const speakers = Object.keys(bySpeaker).map(Number);
     const samples = [];
 
     for (let b = 0; b < blocks; b++) {
-        const block = idBlocks[b];
-        const sample = [];
-        const speakerCounts = {};
-        speakers.forEach(s => speakerCounts[s] = 0);
+        const blockSample = [];
 
-        // For each ID in this block
-        for (const id of block) {
-            const group = [...byId[id]].sort(() => Math.random() - 0.5);
+        for (const spk of speakers) {
+            // Shuffle speaker's items
+            const shuffled = [...bySpeaker[spk]].sort(() => Math.random() - 0.5);
 
-            for (const item of group) {
-                const s = item.speaker;
+            // Pick items with unique IDs
+            const selected = [];
+            const seenIds = new Set();
 
-                if (speakerCounts[s] < perSpeaker) {
-                    sample.push(item);
-                    speakerCounts[s]++;
-                    break; // do not reuse ID
+            for (const item of shuffled) {
+                if (!seenIds.has(item.id)) {
+                    selected.push(item);
+                    seenIds.add(item.id);
                 }
+                if (selected.length === perSpeaker) break;
             }
+
+            if (selected.length < perSpeaker) {
+                throw new Error(`Not enough unique items for speaker ${spk}`);
+            }
+
+            blockSample.push(...selected);
         }
 
-        samples.push(sample);
+        samples.push(blockSample);
     }
 
     return samples;
 }
-
 
 function sampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 10) {
     // group by ID
