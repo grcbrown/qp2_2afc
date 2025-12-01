@@ -10,3 +10,64 @@ function create_tv_array(json_object) {
     }
     return tv_array;
 }
+
+function sampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 2) {
+    // group by ID
+    const byId = {};
+    for (const t of trial_objects) {
+        if (!byId[t.id]) byId[t.id] = [];
+        byId[t.id].push(t);
+    }
+
+    const ids = Object.keys(byId);
+
+    // total IDs must match blocks × perSpeaker
+    if (ids.length !== blocks * perSpeaker) {
+        throw new Error("ID count mismatch: need blocks * perSpeaker IDs.");
+    }
+
+    // --- Shuffle all IDs once ---
+    for (let i = ids.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
+
+    // --- Partition IDs into 8 blocks of 10 IDs each ---
+    const idBlocks = [];
+    for (let b = 0; b < blocks; b++) {
+        idBlocks.push(ids.slice(b * perSpeaker, (b + 1) * perSpeaker));
+    }
+
+    // find speakers
+    const speakers = [...new Set(trial_objects.map(o => o.speaker))];
+
+    // --- Produce one sample per block ---
+    const samples = []; // array of 8 samples
+
+    for (let b = 0; b < blocks; b++) {
+        const block = idBlocks[b];
+        const sample = [];
+        const speakerCounts = {};
+
+        speakers.forEach(s => speakerCounts[s] = 0);
+
+        // For each ID in this block
+        for (const id of block) {
+            const group = [...byId[id]].sort(() => Math.random() - 0.5);
+
+            for (const item of group) {
+                const s = item.speaker;
+
+                if (speakerCounts[s] < perSpeaker) {
+                    sample.push(item);
+                    speakerCounts[s]++;
+                    break; // do not reuse ID
+                }
+            }
+        }
+
+        samples.push(sample);
+    }
+
+    return samples;
+}

@@ -55,7 +55,7 @@ const irb = {
 
 //timeline.push(irb); //skip for pilot and testing
 
-//AUDIO CHECK
+//INITIAL AUDIO CHECK
 //audio warning
 const audio_warn = {
     type: jsPsychHtmlButtonResponse,
@@ -67,8 +67,6 @@ const audio_warn = {
     `,
     response_ends_trial: true
 };
-
-timeline.push(audio_warn);
     
 //audio check
 const audio_check = {
@@ -117,13 +115,15 @@ const audio_check_loop = {
   }
 };
 
-//timeline.push(audio_check_loop); //cut for testing
+//timeline.push(audio_warn, audio_check_loop); //cut for testing
 
 //INSTRUCTIONS
 const instructions = {
     type: jsPsychHtmlButtonResponse,
     stimulus: `
     <div style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
+        <p>NOTE: THIS IS A SAMPLE STUDY WITH A REDUCED NUMBER OF TRIALS</p>
+        <br><br>
         <p>In this study, you will listen to a series of different sentences produced by a variety of different speakers. In a given trial, you will hear an audio clip of a speaker producing a sentence. While this audio clip is playing, you will be prompted to select one of two labels that best describes the speaker. To select a response, you will press either the ‘D’ or ‘K’ key on your keyboard. There will be a reminder of what keys to press in each trial. Please try to respond as quickly as possible. If you do not respond within 10 seconds after the audio clip has played, the experiment will advance automatically.</p>
         <br><br>
         <p>If you understand the instructions and are ready to begin the practice trials, click ‘Continue’.</p>
@@ -135,8 +135,11 @@ const instructions = {
 
 timeline.push(instructions);
 
+stim_list = sampleBalancedBlocks(trial_objects, 8, 2);
+
 //LISTENING TRIALS
-let tv_array = create_tv_array(trial_objects);
+//BLOCK 1
+let tv_array_1 = create_tv_array(stim_list[0]);
 const block_1 = {
     timeline: [
         {
@@ -156,14 +159,210 @@ const block_1 = {
             choices: [""],
             stimulus: "",
             response_ends_trial: false,
-            trial_duration: 1000
+            trial_duration: 500
         }
     ],
-    timeline_variables: tv_array,
+    timeline_variables: tv_array_1,
     randomize_order: true
 };
 
-timeline.push(block_1);
+//BLOCK 2
+let tv_array_2 = create_tv_array(stim_list[1]);
+const block_2 = {
+    timeline: [
+        {
+            type: jsPsychAudioKeyboardResponse,
+            choices: ['d', 'k'],
+            stimulus: jsPsych.timelineVariable('stimulus'),
+            response_allowed_while_playing: true,
+            trial_duration: 10000,
+            prompt: `<div class=\"option_container\"><div class=\"option\">INTELLIGENT<br><br><b>D</b></div><div class=\"option\">UNINTELLIGENT<br><br><b>K</b></div></div>`,
+            data: {
+                spk: jsPsych.timelineVariable('speaker'),
+                sentence_id: jsPsych.timelineVariable('id')
+            }
+        },
+        {
+            type: jsPsychHtmlKeyboardResponse,
+            choices: [""],
+            stimulus: "",
+            response_ends_trial: false,
+            trial_duration: 500
+        }
+    ],
+    timeline_variables: tv_array_2,
+    randomize_order: true
+};
+
+//BLOCK 3
+let tv_array_3 = create_tv_array(stim_list[2]);
+const block_3 = {
+    timeline: [
+        {
+            type: jsPsychAudioKeyboardResponse,
+            choices: ['d', 'k'],
+            stimulus: jsPsych.timelineVariable('stimulus'),
+            response_allowed_while_playing: true,
+            trial_duration: 10000,
+            prompt: `<div class=\"option_container\"><div class=\"option\">NERVOUS<br><br><b>D</b></div><div class=\"option\">CALM<br><br><b>K</b></div></div>`,
+            data: {
+                spk: jsPsych.timelineVariable('speaker'),
+                sentence_id: jsPsych.timelineVariable('id')
+            }
+        },
+        {
+            type: jsPsychHtmlKeyboardResponse,
+            choices: [""],
+            stimulus: "",
+            response_ends_trial: false,
+            trial_duration: 500
+        }
+    ],
+    timeline_variables: tv_array_3,
+    randomize_order: true
+};
+
+//BLOCK 4
+let tv_array_4 = create_tv_array(stim_list[3]);
+const block_4 = {
+    timeline: [
+        {
+            type: jsPsychAudioKeyboardResponse,
+            choices: ['d', 'k'],
+            stimulus: jsPsych.timelineVariable('stimulus'),
+            response_allowed_while_playing: true,
+            trial_duration: 10000,
+            prompt: `<div class=\"option_container\"><div class=\"option\">SOCIALLY GRACEFUL<br><br><b>D</b></div><div class=\"option\">SOCIALLY AWKWARD<br><br><b>K</b></div></div>`,
+            data: {
+                spk: jsPsych.timelineVariable('speaker'),
+                sentence_id: jsPsych.timelineVariable('id')
+            }
+        },
+        {
+            type: jsPsychHtmlKeyboardResponse,
+            choices: [""],
+            stimulus: "",
+            response_ends_trial: false,
+            trial_duration: 500
+        }
+    ],
+    timeline_variables: tv_array_4,
+    randomize_order: true
+};
+
+//BLOCK 5
+let tv_array_5 = create_tv_array(stim_list[4]);
+const block_5 = {
+    timeline: [
+        {
+            type: jsPsychAudioKeyboardResponse,
+            choices: ['d', 'k'],
+            stimulus: jsPsych.timelineVariable('stimulus'),
+            response_allowed_while_playing: true,
+            trial_duration: 10000,
+            prompt: `<div class=\"option_container\"><div class=\"option\">FEMININE<br><br><b>D</b></div><div class=\"option\">MASCULINE<br><br><b>K</b></div></div>`,
+            data: {
+                spk: jsPsych.timelineVariable('speaker'),
+                sentence_id: jsPsych.timelineVariable('id')
+            }
+        },
+        {
+            type: jsPsychHtmlKeyboardResponse,
+            choices: [""],
+            stimulus: "",
+            response_ends_trial: false,
+            trial_duration: 500
+        }
+    ],
+    timeline_variables: tv_array_5,
+    randomize_order: true
+};
+
+//BLOCK 6
+let tv_array_6 = create_tv_array(stim_list[5]);
+const block_6 = {
+    timeline: [
+        {
+            type: jsPsychAudioKeyboardResponse,
+            choices: ['d', 'k'],
+            stimulus: jsPsych.timelineVariable('stimulus'),
+            response_allowed_while_playing: true,
+            trial_duration: 10000,
+            prompt: `<div class=\"option_container\"><div class=\"option\">UNINTELLIGENT<br><br><b>D</b></div><div class=\"option\">INTELLIGENT<br><br><b>K</b></div></div>`,
+            data: {
+                spk: jsPsych.timelineVariable('speaker'),
+                sentence_id: jsPsych.timelineVariable('id')
+            }
+        },
+        {
+            type: jsPsychHtmlKeyboardResponse,
+            choices: [""],
+            stimulus: "",
+            response_ends_trial: false,
+            trial_duration: 500
+        }
+    ],
+    timeline_variables: tv_array_6,
+    randomize_order: true
+};
+
+//BLOCK 7
+let tv_array_7 = create_tv_array(stim_list[6]);
+const block_7 = {
+    timeline: [
+        {
+            type: jsPsychAudioKeyboardResponse,
+            choices: ['d', 'k'],
+            stimulus: jsPsych.timelineVariable('stimulus'),
+            response_allowed_while_playing: true,
+            trial_duration: 10000,
+            prompt: `<div class=\"option_container\"><div class=\"option\">CALM<br><br><b>D</b></div><div class=\"option\">NERVOUS<br><br><b>K</b></div></div>`,
+            data: {
+                spk: jsPsych.timelineVariable('speaker'),
+                sentence_id: jsPsych.timelineVariable('id')
+            }
+        },
+        {
+            type: jsPsychHtmlKeyboardResponse,
+            choices: [""],
+            stimulus: "",
+            response_ends_trial: false,
+            trial_duration: 500
+        }
+    ],
+    timeline_variables: tv_array_7,
+    randomize_order: true
+};
+
+//BLOCK 8
+let tv_array_8 = create_tv_array(stim_list[7]);
+const block_8 = {
+    timeline: [
+        {
+            type: jsPsychAudioKeyboardResponse,
+            choices: ['d', 'k'],
+            stimulus: jsPsych.timelineVariable('stimulus'),
+            response_allowed_while_playing: true,
+            trial_duration: 10000,
+            prompt: `<div class=\"option_container\"><div class=\"option\">SOCIALLY AWKWARD<br><br><b>D</b></div><div class=\"option\">SOCIALLY GRACEFUL<br><br><b>K</b></div></div>`,
+            data: {
+                spk: jsPsych.timelineVariable('speaker'),
+                sentence_id: jsPsych.timelineVariable('id')
+            }
+        },
+        {
+            type: jsPsychHtmlKeyboardResponse,
+            choices: [""],
+            stimulus: "",
+            response_ends_trial: false,
+            trial_duration: 500
+        }
+    ],
+    timeline_variables: tv_array_8,
+    randomize_order: true
+};
+
+timeline.push(block_1, block_2, block_3, block_4, block_5, block_6, block_7, block_8);
 
 //SURVEY INSTRUCTIONS
 const transition = {
@@ -202,17 +401,19 @@ const questionnaire = {
         inputType: "number"
       },
       {
-        type: "radiogroup",
+        type: "comment",
         name: "gender",
-        title: "What is your gender identity?",
-        choices: ["Male", "Female", "Non-binary", "Prefer not to answer"],
-        showOtherItem: true,
-        otherText: "Other (describe)"
+        title: "What is your gender identity?"
+      },
+      {
+        type: "comment",
+        name: "race",
+        title: "What is your racial identity?"
       },
       {
         type: "comment",
         name: "ethnicity",
-        title: "What is your race and/or ethnicity?"
+        title: "What is your ethnicity?"
       },
       {
         type: "comment",
@@ -281,12 +482,19 @@ const filename = `${p_id}.csv`;
 const save_data = {
   type: jsPsychPipe,
   action: "save",
-  experiment_id: "pDKOe8WY8f6N", //UPDATE WITH NEW DATAPIPE STUFF
+  experiment_id: "dQGC7jeRc33t", //UPDATE WITH NEW DATAPIPE STUFF
   filename: filename,
   data_string: ()=>jsPsych.data.get().csv()
 };
 
-//timeline.push(save_data);
+timeline.push(save_data);
+
+//FOR PILOTING - END DEMO
+var end_demo = {
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `<p>You've finished the demo! You can close the tab to end the experiment or refresh to run it again.</p>`,
+  choices: "NO_KEYS"
+}
 
 //THANKS// - CHANGE LINK
 var thanks = {
