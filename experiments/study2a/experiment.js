@@ -374,9 +374,9 @@ timeline.push(irb); //skip for pilot and testing
 //INITIAL AUDIO CHECK
 
 let audio_check_instructions = {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: `<div class="gen_ins"><p>Before the experiment begins, we'd like to do a quick audio check. During the audio check, you'll hear two tones in a row, and then be asked to select which tone was quieter. Sometimes, the two tones will be the same.<br><br>If the first tone was quieter, press '1', and if the second tone was quieter, press '2'. If both tones seemed about the same, press '0'.<br><br>When you're ready, press the space bar to begin the audio check.</p></div>`,
-    choices: ['space']
+    type: jsPsychHtmlButtonResponse,
+    stimulus: `<div class="gen_ins"><p>Before the experiment begins, we'd like to do a quick audio check. During the audio check, you'll hear two tones in a row, and then be asked to select which tone was quieter. Sometimes, the two tones will be the same.<br><br>If the first tone was quieter, press '1', and if the second tone was quieter, press '2'. If both tones seemed about the same, press '0'.<br><br>When you're ready, click 'Start Check' to begin the audio check.</p></div>`,
+    choices: ['Start Check']
 }
 
 timeline.push(audio_check_instructions, audio_check_reset);
