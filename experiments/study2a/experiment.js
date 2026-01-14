@@ -364,7 +364,7 @@ const irb = {
     margin_vertical: '10px'
 };
 
-//timeline.push(irb); //skip for pilot and testing
+timeline.push(irb); //skip for pilot and testing
 
 //INITIAL AUDIO CHECK
 //audio warning
@@ -435,7 +435,7 @@ const instructions = {
     <div style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
         <p>NOTE: THIS IS A SAMPLE STUDY WITH A REDUCED NUMBER OF TRIALS</p>
         <br><br>
-        <p>In this study, you will listen to a series of different sentences produced by a variety of different speakers. In a given trial, you will hear an audio clip of a speaker producing a sentence. While this audio clip is playing, you will be prompted to select one of two labels that best describes the speaker. To select a response, you will press either the ‘D’ or ‘K’ key on your keyboard. There will be a reminder of what keys to press in each trial. Please try to respond as quickly as possible. If you do not respond within 10 seconds after the audio clip has played, the experiment will advance automatically.</p>
+        <p>In this study, you will listen to sentences produced by a variety of speakers. For each trial, you will hear one of these sentences. While the clip plays, you will be prompted to select one of two labels that best describes the speaker. To select a response, press either the ‘D’ or ‘K’ key on your keyboard. Please respond as quickly as possible. If you do not respond within 10 seconds, the experiment will advance automatically.</p>
         <br><br>
         <p>If you understand the instructions and are ready to begin the practice trials, click ‘Continue’.</p>
     </div>
@@ -446,7 +446,8 @@ const instructions = {
 
 timeline.push(instructions);
 
-stim_list = DEMOsampleBalancedBlocks(trial_objects, 8, 2); //using DEMO SAMPLING - CHANGE LATER
+//stim_list = DEMOsampleBalancedBlocks(trial_objects, 8, 2); //using DEMO SAMPLING - CHANGE LATER
+stim_list = sampleBalancedBlocks(trial_objects, 8, 10);
 
 //LISTENING TRIALS
 //BLOCK 1
