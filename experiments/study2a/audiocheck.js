@@ -1,6 +1,6 @@
 // Reset variables for second round
 let audio_check_reset = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: " ",
   trial_duration: 10,
   on_finish: function () {
@@ -11,7 +11,7 @@ let audio_check_reset = {
 
 // Evaluate results (first pass)
 let audio_check_evaluate = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: " ",
   trial_duration: 10,
   on_finish: function () {
@@ -25,7 +25,7 @@ let audio_check_evaluate = {
 
 // Evaluate results (second pass)
 let audio_check_second_evaluate = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: " ",
   trial_duration: 10,
   on_finish: function () {
@@ -42,7 +42,7 @@ let audio_check_second_evaluate = {
 // --------------------------------------------------
 // Between-round instructions (only if failed first)
 let audio_check_between = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: `
     <div class="gen_ins">
       <p>
@@ -67,7 +67,7 @@ let audio_check_between = {
 // Failure message (stuck if failed twice)
 // -------------------------------------
 let audio_check_after_bad = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: `
     <div class="gen_ins">
       <p>
@@ -88,7 +88,7 @@ let audio_check_after_bad = {
 // Success message
 // -------------------------------
 let audio_check_after_good = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: `
     <div class="gen_ins">
       <p>
@@ -124,7 +124,7 @@ let html_content = `
 
 // Audio + response trials
 let io_audio = {
-  type: 'audio-keyboard-response',
+  type: jsPsychAudioKeyboardResponse,
   stimulus: () => pass ? 'audio/silence.wav' : 'audio/IO.wav',
   prompt: () => pass ? " " : html_content,
   trial_ends_after_audio: true,
@@ -132,7 +132,7 @@ let io_audio = {
 };
 
 let io_response = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: () => pass ? " " : html_content,
   choices: ['1', '2', '0'],
   trial_duration: () => pass ? 0 : 5000,
@@ -146,7 +146,7 @@ let io_response = {
 };
 
 let oi_audio = {
-  type: 'audio-keyboard-response',
+  type: jsPsychAudioKeyboardResponse,
   stimulus: () => pass ? 'audio/silence.wav' : 'audio/OI.wav',
   prompt: () => pass ? " " : html_content,
   trial_ends_after_audio: true,
@@ -154,7 +154,7 @@ let oi_audio = {
 };
 
 let oi_response = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: () => pass ? " " : html_content,
   choices: ['1', '2', '0'],
   trial_duration: () => pass ? 0 : 5000,
@@ -168,7 +168,7 @@ let oi_response = {
 };
 
 let iq_audio = {
-  type: 'audio-keyboard-response',
+  type: jsPsychAudioKeyboardResponse,
   stimulus: () => pass ? 'audio/silence.wav' : 'audio/IQ.wav',
   prompt: () => pass ? " " : html_content,
   trial_ends_after_audio: true,
@@ -176,7 +176,7 @@ let iq_audio = {
 };
 
 let iq_response = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: () => pass ? " " : html_content,
   choices: ['1', '2', '0'],
   trial_duration: () => pass ? 0 : 5000,
@@ -190,7 +190,7 @@ let iq_response = {
 };
 
 let qi_audio = {
-  type: 'audio-keyboard-response',
+  type: jsPsychAudioKeyboardResponse,
   stimulus: () => pass ? 'audio/silence.wav' : 'audio/QI.wav',
   prompt: () => pass ? " " : html_content,
   trial_ends_after_audio: true,
@@ -198,7 +198,7 @@ let qi_audio = {
 };
 
 let qi_response = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: () => pass ? " " : html_content,
   choices: ['1', '2', '0'],
   trial_duration: () => pass ? 0 : 5000,
