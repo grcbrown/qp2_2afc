@@ -730,11 +730,6 @@ let trial_objects = [
         "id": 707
     },
     {
-        "stimulus": "audio/573_609_redo.wav",
-        "speaker": 573,
-        "id": 609
-    },
-    {
         "stimulus": "audio/573_604_B4.wav",
         "speaker": 573,
         "id": 604

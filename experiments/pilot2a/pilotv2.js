@@ -256,7 +256,6 @@ var preload_trial = {
     "audio/752_609_B4.wav",
     "audio/573_609_B4.wav",
     "audio/752_610_B4.wav",
-    "audio/573_609_redo.wav",
     "audio/752_611_B3.wav",
     "audio/573_610_B3.wav",
     "audio/752_612_B3.wav",
