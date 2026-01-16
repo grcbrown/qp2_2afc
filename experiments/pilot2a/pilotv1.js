@@ -420,9 +420,7 @@ const block_1_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
   stimulus: `
-  <div style="font-size: 48px: text-align: center;"> 
-    <p>BLOCK 1</p>
-  </div>
+  <div class=\"option_container\"><div class=\"option\">BLOCK 1</div></div>
   `,
   prompt: `<div class=\"option_container\"><div class=\"option\">MASCULINE<br><br><b>D</b></div><div class=\"option\">FEMININE<br><br><b>K</b></div></div>`,
   response_ends_trial: false, 
