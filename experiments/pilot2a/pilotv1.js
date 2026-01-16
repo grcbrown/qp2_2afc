@@ -358,9 +358,7 @@ const irb = {
             <p>The risks associated with this study are minimal. This judgment is based on a large body of experience with the same or similar procedures with people of similar ages, sex, origins, etc. Study data will be stored securely, in compliance with Stanford University standards, minimizing the risk of confidentiality breach. Your individual privacy will be maintained during the research and in all published and written data resulting from the study.</p>
             <h3>CONTACT INFORMATION</h3>
             <p>If you have any questions, concerns or complaints about this research study, its procedures, risks and benefits, you should contact the Protocol Director, Grace Brown, at (616) 498-8188. If you are not satisfied with how this study is being conducted, or if you have any concerns, complaints, or general questions about the research or your rights as a participant, please contact the Stanford Institutional Review Board (IRB) to speak to someone independent of the research team at (650) 723-2480 or toll free at 1-866-680-2906. You can also write to the Stanford IRB, Stanford University, 1705 El Camino Real, Palo Alto, CA 94306 USA.</p> 
-            <br>
             <p>Please save or print a copy of this page for your records</p>
-            <br>
             <p>If you agree to participate in this research, please click the 'Continue' button.</p>
         </div>
     `,
@@ -392,7 +390,7 @@ for (let i = 0; i < audiocheck_trials_second.length; i++) {
     timeline.push(audiocheck_trials_second[i][1]);
 }
 
-timeline.push(audio_check_second_evaluate, audio_check_after_bad, audio_check_after_good);
+//timeline.push(audio_check_second_evaluate, audio_check_after_bad, audio_check_after_good);
 
 //INSTRUCTIONS
 const instructions = {
@@ -420,7 +418,7 @@ const block_1_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
   stimulus: `
-  <div class=\"option_container\"><div class=\"option\">BLOCK 1</div></div>
+  <div class=\"header_container\"><div class=\"header\">BLOCK 1</div></div>
   `,
   prompt: `<div class=\"option_container\"><div class=\"option\">MASCULINE<br><br><b>D</b></div><div class=\"option\">FEMININE<br><br><b>K</b></div></div>`,
   response_ends_trial: false, 

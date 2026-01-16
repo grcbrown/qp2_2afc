@@ -106,6 +106,22 @@
     font-size: 24px;
 }
 
+/* === Header Customization === */
+.header_container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 500px;
+    height: 150px;
+    border: 2px solid black;
+    border-radius: 10px;
+}
+
+.header {
+    font-size: 32px;
+}
+
 
 .irb {
     border: 3px black solid;
