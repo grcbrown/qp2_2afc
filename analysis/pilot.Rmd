@@ -1,0 +1,477 @@
+---
+title: "Pilot Analysis"
+author: "Grace Brown"
+date: "2026-01-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(ggplot2)
+library(MuMIn)
+library(emmeans)
+
+knitr::opts_knit$set(root.dir = "/Users/gracebrown/qp2_2afc")
+setwd("/Users/gracebrown/qp2_2afc")
+
+# color-blind-friendly palette
+cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+theme_set(theme_bw())
+```
+
+## Load Data
+```{r load data}
+## read messy dataset
+df.pilot <- read_csv("./data/sample_data_pilot_2av1.csv") # recode as df.responses
+#df.survey <- read_csv("./data/pilot_survey.csv")
+#df.pilot <- left_join(x=df.trials,y=df.survey,by="subject_id")
+
+## Exclusions by Attention Check
+df.exclude_attention <- df.pilot %>%  
+  filter(trial_type == "html-button-response", correct == FALSE) %>%
+  distinct(subject_id)
+
+df.pilot <- df.pilot %>% 
+  anti_join(df.exclude_attention, by = "subject_id")
+
+## Exclusions by Trial Completion 
+trial_num = 288 # 288 trials in pilot 
+df.exclude_trial <- df.pilot %>% 
+  filter(!is.na(rt), trial_type == "audio-keyboard-response") %>%
+  count(subject_id) %>% 
+  filter(n / trial_num < 0.85) %>% # subjects with < 85% completion rate excluded
+  distinct(subject_id)
+
+df.pilot <- df.pilot %>% 
+  anti_join(df.exclude_trial, by = "subject_id")
+
+## Recode Variables
+df.pilot$talker <- factor(df.pilot$spk, 
+                          levels = c(493, 573, 672, 752),
+                          labels = c("F1", "F2", "F3", "F4"))
+df.pilot$prev_talker <- factor(df.pilot$prev_spk, 
+                          levels = c(493, 573, 672, 752),
+                          labels = c("F1", "F2", "F3", "F4"))
+df.pilot$response_ref <- ifelse(df.pilot$response == "d", 1, 0)
+df.pilot$rt <- as.numeric(df.pilot$rt)
+```
+
+## Visualizations
+### comfortable / awkward
+#### response 
+```{r}
+df.pilot %>% 
+  filter(label == "comfortable" | label == "awkward") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = response_ref,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Proportion 'Awkward'") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+#### response time
+```{r}
+# central tendencies 
+df.pilot %>% 
+  filter(label == "comfortable" | label == "awkward") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+  
+# trend within block 
+df.pilot %>% 
+  filter(label == "comfortable" | label == "awkward") %>% # select responses of interest
+  ggplot(mapping = aes(x = trial_index - 42, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+
+### friendly / unfriendly
+#### response 
+```{r}
+df.pilot %>% 
+  filter(label == "friendly" | label == "unfriendly") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = response_ref,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Proportion 'Friendly'") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+#### response time
+```{r}
+# central tendencies 
+df.pilot %>% 
+  filter(label == "friendly" | label == "unfriendly") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+  
+# trend within block 
+df.pilot %>% 
+  filter(label == "friendly" | label == "unfriendly") %>% # select responses of interest
+  ggplot(mapping = aes(x = trial_index - 139, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+### emotive / robotic
+#### response 
+```{r}
+df.pilot %>% 
+  filter(label == "emotive" | label == "robotic") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = response_ref,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Proportion 'Emotive'") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+#### response time
+```{r}
+# central tendencies 
+df.pilot %>% 
+  filter(label == "emotive" | label == "robotic") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+  
+# trend within block 
+df.pilot %>% 
+  filter(label == "emotive" | label == "robotic") %>% # select responses of interest
+  ggplot(mapping = aes(x = trial_index - 237, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+### nervous / calm
+#### response 
+```{r}
+df.pilot %>% 
+  filter(label == "nervous" | label == "calm") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = response_ref,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Proportion 'Nervous'") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+#### response time
+```{r}
+# central tendencies 
+df.pilot %>% 
+  filter(label == "nervous" | label == "calm") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+  
+# trend within block 
+df.pilot %>% 
+  filter(label == "nervous" | label == "calm") %>% # select responses of interest
+  ggplot(mapping = aes(x = trial_index - 334, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+### sharp / dull
+#### response 
+```{r}
+df.pilot %>% 
+  filter(label == "sharp" | label == "dull") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = response_ref,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Proportion 'Sharp'") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+#### response time
+```{r}
+# central tendencies 
+df.pilot %>% 
+  filter(label == "sharp" | label == "dull") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+  
+# trend within block 
+df.pilot %>% 
+  filter(label == "sharp" | label == "dull") %>% # select responses of interest
+  ggplot(mapping = aes(x = trial_index - 432, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+### masculine / feminine
+#### response 
+```{r}
+df.pilot %>% 
+  filter(label == "masculine" | label == "feminine") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = response_ref,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Proportion 'Masculine'") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+#### response time
+```{r}
+# central tendencies 
+df.pilot %>% 
+  filter(label == "masculine" | label == "feminine") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+  
+# trend within block 
+df.pilot %>% 
+  filter(label == "masculine" | label == "feminine") %>% # select responses of interest
+  ggplot(mapping = aes(x = trial_index - 529, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+### XX / XX
+#### response 
+```{r}
+df.pilot %>% 
+  filter(label == "emotive" | label == "robotic") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = response_ref,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Proportion 'Emotive'") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+#### response time
+```{r}
+# central tendencies 
+df.pilot %>% 
+  filter(label == "emotive" | label == "robotic") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  labs(x = "Talker",
+       y = "Mean Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+  
+# trend within block 
+df.pilot %>% 
+  filter(label == "emotive" | label == "robotic") %>% # select responses of interest
+  ggplot(mapping = aes(x = trial_index - 237, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+## Hypothesis Testing
+### comfortable / awkward
+```{r}
+df.awkward <- filter(df.pilot, label == "comfortable" | label == "awkward")
+fit.awkward <- glm(formula = response_ref ~ 1 + talker,
+                   family = "binomial",
+                   data = df.awkward)
+summary(fit.awkward)
+
+fit.awkward.rt <- lm(formula = rt ~ 1 + talker + label,
+                   data = df.awkward)
+summary(fit.awkward.rt)
+```
+
+### friendly / unfriendly
+```{r}
+df.friendly <- filter(df.pilot, label == "friendly" | label == "unfriendly")
+fit.friendly <- glm(formula = response_ref ~ 1 + talker,
+                   family = "binomial",
+                   data = df.friendly)
+summary(fit.friendly)
+
+fit.friendly.rt <- lm(formula = rt ~ 1 + talker + label,
+                   data = df.friendly)
+summary(fit.friendly.rt)
+```
+
+### emotive / robotic
+```{r}
+df.emotive <- filter(df.pilot, label == "emotive" | label == "robotic")
+fit.emotive <- glm(formula = response_ref ~ 1 + talker,
+                   family = "binomial",
+                   data = df.emotive)
+summary(fit.emotive)
+
+fit.emotive.rt <- lm(formula = rt ~ 1 + talker + label,
+                   data = df.emotive)
+summary(fit.emotive.rt)
+```
+
+### nervous / calm
+```{r}
+df.nervous <- filter(df.pilot, label == "nervous" | label == "calm")
+fit.nervous <- glm(formula = response_ref ~ 1 + talker,
+                   family = "binomial",
+                   data = df.nervous)
+summary(fit.nervous)
+
+fit.nervous.rt <- lm(formula = rt ~ 1 + talker + label,
+                   data = df.nervous)
+summary(fit.nervous.rt)
+```
+
+### sharp / dull
+```{r}
+df.sharp <- filter(df.pilot, label == "sharp" | label == "dull")
+fit.sharp <- glm(formula = response_ref ~ 1 + talker,
+                   family = "binomial",
+                   data = df.sharp)
+summary(fit.sharp)
+
+fit.sharp.rt <- lm(formula = rt ~ 1 + talker + label,
+                   data = df.sharp)
+summary(fit.sharp.rt)
+```
+
+### masculine / feminine
+```{r}
+df.masculine <- filter(df.pilot, label == "masculine" | label == "feminine")
+fit.masculine <- glm(formula = response_ref ~ 1 + talker,
+                   family = "binomial",
+                   data = df.masculine)
+summary(fit.masculine)
+
+fit.masculine.rt <- lm(formula = rt ~ 1 + talker + label,
+                   data = df.masculine)
+summary(fit.masculine.rt)
+```
