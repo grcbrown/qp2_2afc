@@ -910,6 +910,11 @@ let trial_objects = [
         "id": 515
     },
     {
+        "stimulus": "audio/672_515_B2.wav",
+        "speaker": 672,
+        "id": 515
+    },
+    {
         "stimulus": "audio/752_607_B4.wav",
         "speaker": 752,
         "id": 607
