@@ -419,10 +419,14 @@ stim_list = sampleBalancedBlocks(trial_objects, 6, 12);
 const block_1_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
-  stimulus: "BLOCK 1",
+  stimulus: `
+  <div style="font-size: 48px: text-align: center;"> 
+    <p>BLOCK 1</p>
+  </div>
+  `,
   prompt: `<div class=\"option_container\"><div class=\"option\">MASCULINE<br><br><b>D</b></div><div class=\"option\">FEMININE<br><br><b>K</b></div></div>`,
   response_ends_trial: false, 
-  trial_duration: 1000
+  trial_duration: 5000
 }
 
 let tv_array_1 = create_tv_array(stim_list[0]);
