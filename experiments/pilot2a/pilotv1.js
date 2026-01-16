@@ -412,9 +412,7 @@ const instructions = {
 
 timeline.push(instructions);
 
-console.log(typeof sampleBalancedBlocksPILOT);
-const stim_list = sampleBalancedBlocksPILOT(trial_objects, 6, 12, 288); 
-//stim_list = sampleBalancedBlocks(trial_objects, 8, 10);
+stim_list = sampleBalancedBlocks(trial_objects, 6, 12);
 
 //LISTENING TRIALS
 //BLOCK 1

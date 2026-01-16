@@ -20,16 +20,6 @@ let trial_objects = [
         "id": 612
     },
     {
-        "stimulus": "audio/752_501_B2_2.wav",
-        "speaker": 752,
-        "id": 501
-    },
-    {
-        "stimulus": "audio/493_503_B1.wav",
-        "speaker": 493,
-        "id": 503
-    },
-    {
         "stimulus": "audio/752_509_B2.wav",
         "speaker": 752,
         "id": 509
@@ -195,11 +185,6 @@ let trial_objects = [
         "id": 538
     },
     {
-        "stimulus": "audio/672_603_B4.wav",
-        "speaker": 672,
-        "id": 603
-    },
-    {
         "stimulus": "audio/752_704_B3.wav",
         "speaker": 752,
         "id": 704
@@ -230,16 +215,6 @@ let trial_objects = [
         "id": 540
     },
     {
-        "stimulus": "audio/672_502_B2.wav",
-        "speaker": 672,
-        "id": 502
-    },
-    {
-        "stimulus": "audio/493_702_B1.wav",
-        "speaker": 493,
-        "id": 702
-    },
-    {
         "stimulus": "audio/752_720_B3.wav",
         "speaker": 752,
         "id": 720
@@ -250,29 +225,9 @@ let trial_objects = [
         "id": 620
     },
     {
-        "stimulus": "audio/493_602_B3.wav",
-        "speaker": 493,
-        "id": 602
-    },
-    {
         "stimulus": "audio/752_515_B2.wav",
         "speaker": 752,
         "id": 515
-    },
-    {
-        "stimulus": "audio/493_501_B1.wav",
-        "speaker": 493,
-        "id": 501
-    },
-    {
-        "stimulus": "audio/672_601_B2.wav",
-        "speaker": 672,
-        "id": 601
-    },
-    {
-        "stimulus": "audio/672_701_B2.wav",
-        "speaker": 672,
-        "id": 701
     },
     {
         "stimulus": "audio/573_522_B1.wav",
@@ -328,11 +283,6 @@ let trial_objects = [
         "stimulus": "audio/573_605_B3.wav",
         "speaker": 573,
         "id": 605
-    },
-    {
-        "stimulus": "audio/573_702_redo.wav",
-        "speaker": 573,
-        "id": 702
     },
     {
         "stimulus": "audio/672_713_B3.wav",
@@ -440,11 +390,6 @@ let trial_objects = [
         "id": 607
     },
     {
-        "stimulus": "audio/573_601_B1.wav",
-        "speaker": 573,
-        "id": 601
-    },
-    {
         "stimulus": "audio/672_719_B4.wav",
         "speaker": 672,
         "id": 719
@@ -458,11 +403,6 @@ let trial_objects = [
         "stimulus": "audio/672_522_B2.wav",
         "speaker": 672,
         "id": 522
-    },
-    {
-        "stimulus": "audio/573_603_B4.wav",
-        "speaker": 573,
-        "id": 603
     },
     {
         "stimulus": "audio/672_615_B4.wav",
@@ -515,11 +455,6 @@ let trial_objects = [
         "id": 539
     },
     {
-        "stimulus": "audio/752_602_B4.wav",
-        "speaker": 752,
-        "id": 602
-    },
-    {
         "stimulus": "audio/493_622_B3.wav",
         "speaker": 493,
         "id": 622
@@ -540,11 +475,6 @@ let trial_objects = [
         "id": 527
     },
     {
-        "stimulus": "audio/573_502_B1.wav",
-        "speaker": 573,
-        "id": 502
-    },
-    {
         "stimulus": "audio/752_710_B4.wav",
         "speaker": 752,
         "id": 710
@@ -553,11 +483,6 @@ let trial_objects = [
         "stimulus": "audio/752_610_B4.wav",
         "speaker": 752,
         "id": 610
-    },
-    {
-        "stimulus": "audio/752_503_B2.wav",
-        "speaker": 752,
-        "id": 503
     },
     {
         "stimulus": "audio/493_614_B3.wav",
@@ -588,11 +513,6 @@ let trial_objects = [
         "stimulus": "audio/573_534_B1.wav",
         "speaker": 573,
         "id": 534
-    },
-    {
-        "stimulus": "audio/573_701_B2.wav",
-        "speaker": 573,
-        "id": 701
     },
     {
         "stimulus": "audio/493_606_B3.wav",
@@ -648,11 +568,6 @@ let trial_objects = [
         "stimulus": "audio/493_720_B3.wav",
         "speaker": 493,
         "id": 720
-    },
-    {
-        "stimulus": "audio/752_702_B1.wav",
-        "speaker": 752,
-        "id": 702
     },
     {
         "stimulus": "audio/573_512_B1.wav",
@@ -795,11 +710,6 @@ let trial_objects = [
         "id": 724
     },
     {
-        "stimulus": "audio/493_601_B1.wav",
-        "speaker": 493,
-        "id": 601
-    },
-    {
         "stimulus": "audio/752_623_B3.wav",
         "speaker": 752,
         "id": 623
@@ -870,19 +780,9 @@ let trial_objects = [
         "id": 705
     },
     {
-        "stimulus": "audio/493_701_B2.wav",
-        "speaker": 493,
-        "id": 701
-    },
-    {
         "stimulus": "audio/493_534_B1.wav",
         "speaker": 493,
         "id": 534
-    },
-    {
-        "stimulus": "audio/672_501_B1.wav",
-        "speaker": 672,
-        "id": 501
     },
     {
         "stimulus": "audio/493_725_B3.wav",
@@ -970,19 +870,9 @@ let trial_objects = [
         "id": 508
     },
     {
-        "stimulus": "audio/672_702_B2.wav",
-        "speaker": 672,
-        "id": 702
-    },
-    {
         "stimulus": "audio/672_537_B1.wav",
         "speaker": 672,
         "id": 537
-    },
-    {
-        "stimulus": "audio/493_502_B1.wav",
-        "speaker": 493,
-        "id": 502
     },
     {
         "stimulus": "audio/573_507_B1.wav",
@@ -1023,11 +913,6 @@ let trial_objects = [
         "stimulus": "audio/752_607_B4.wav",
         "speaker": 752,
         "id": 607
-    },
-    {
-        "stimulus": "audio/672_503_B1.wav",
-        "speaker": 672,
-        "id": 503
     },
     {
         "stimulus": "audio/573_708_B3.wav",
@@ -1078,11 +963,6 @@ let trial_objects = [
         "stimulus": "audio/672_535_B1.wav",
         "speaker": 672,
         "id": 535
-    },
-    {
-        "stimulus": "audio/493_603_B3.wav",
-        "speaker": 493,
-        "id": 603
     },
     {
         "stimulus": "audio/573_540_B1.wav",
@@ -1195,11 +1075,6 @@ let trial_objects = [
         "id": 539
     },
     {
-        "stimulus": "audio/672_602_B4.wav",
-        "speaker": 672,
-        "id": 602
-    },
-    {
         "stimulus": "audio/493_516_B1.wav",
         "speaker": 493,
         "id": 516
@@ -1295,11 +1170,6 @@ let trial_objects = [
         "id": 511
     },
     {
-        "stimulus": "audio/752_603_B4.wav",
-        "speaker": 752,
-        "id": 603
-    },
-    {
         "stimulus": "audio/752_526_B2.wav",
         "speaker": 752,
         "id": 526
@@ -1308,11 +1178,6 @@ let trial_objects = [
         "stimulus": "audio/493_520_B1.wav",
         "speaker": 493,
         "id": 520
-    },
-    {
-        "stimulus": "audio/573_503_B1.wav",
-        "speaker": 573,
-        "id": 503
     },
     {
         "stimulus": "audio/672_716_B3.wav",
@@ -1335,11 +1200,6 @@ let trial_objects = [
         "id": 623
     },
     {
-        "stimulus": "audio/752_601_B1.wav",
-        "speaker": 752,
-        "id": 601
-    },
-    {
         "stimulus": "audio/752_534_B2.wav",
         "speaker": 752,
         "id": 534
@@ -1358,11 +1218,6 @@ let trial_objects = [
         "stimulus": "audio/672_606_B4.wav",
         "speaker": 672,
         "id": 606
-    },
-    {
-        "stimulus": "audio/752_502_B1.wav",
-        "speaker": 752,
-        "id": 502
     },
     {
         "stimulus": "audio/672_540_B2.wav",
@@ -1425,11 +1280,6 @@ let trial_objects = [
         "id": 726
     },
     {
-        "stimulus": "audio/752_701_B2.wav",
-        "speaker": 752,
-        "id": 701
-    },
-    {
         "stimulus": "audio/672_533_B2.wav",
         "speaker": 672,
         "id": 533
@@ -1483,11 +1333,6 @@ let trial_objects = [
         "stimulus": "audio/493_719_B4.wav",
         "speaker": 493,
         "id": 719
-    },
-    {
-        "stimulus": "audio/573_501_B2.wav",
-        "speaker": 573,
-        "id": 501
     },
     {
         "stimulus": "audio/672_505_B2.wav",
@@ -1558,11 +1403,6 @@ let trial_objects = [
         "stimulus": "audio/752_725_B4.wav",
         "speaker": 752,
         "id": 725
-    },
-    {
-        "stimulus": "audio/573_602_B3.wav",
-        "speaker": 573,
-        "id": 602
     },
     {
         "stimulus": "audio/493_721_B3.wav",
