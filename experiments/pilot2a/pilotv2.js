@@ -358,9 +358,7 @@ const irb = {
             <p>The risks associated with this study are minimal. This judgment is based on a large body of experience with the same or similar procedures with people of similar ages, sex, origins, etc. Study data will be stored securely, in compliance with Stanford University standards, minimizing the risk of confidentiality breach. Your individual privacy will be maintained during the research and in all published and written data resulting from the study.</p>
             <h3>CONTACT INFORMATION</h3>
             <p>If you have any questions, concerns or complaints about this research study, its procedures, risks and benefits, you should contact the Protocol Director, Grace Brown, at (616) 498-8188. If you are not satisfied with how this study is being conducted, or if you have any concerns, complaints, or general questions about the research or your rights as a participant, please contact the Stanford Institutional Review Board (IRB) to speak to someone independent of the research team at (650) 723-2480 or toll free at 1-866-680-2906. You can also write to the Stanford IRB, Stanford University, 1705 El Camino Real, Palo Alto, CA 94306 USA.</p> 
-            <br>
             <p>Please save or print a copy of this page for your records</p>
-            <br>
             <p>If you agree to participate in this research, please click the 'Continue' button.</p>
         </div>
     `,
@@ -375,11 +373,16 @@ timeline.push(irb); //skip for pilot and testing
 
 let audio_check_instructions = {
     type: jsPsychHtmlButtonResponse,
-    stimulus: `<div class="gen_ins"><p>Before the experiment begins, we'd like to do a quick audio check. During the audio check, you'll hear two tones in a row, and then be asked to select which tone was quieter. Sometimes, the two tones will be the same.<br><br>If the first tone was quieter, press '1', and if the second tone was quieter, press '2'. If both tones seemed about the same, press '0'.<br><br>When you're ready, click 'Start Check' to begin the audio check.</p></div>`,
+    stimulus: `
+    <div class="gen_ins">
+    <p>Before the experiment begins, we'd like to do a quick audio check. During the audio check, you'll hear two tones in a row, and then be asked to select which tone was quieter. Sometimes, the two tones will be the same.<br><br>If the first tone was quieter, press '1', and if the second tone was quieter, press '2'. If both tones seemed about the same, press '0'.<br><br>When you're ready, click 'Start Check' to begin the audio check.</p>
+    </div>
+    `,
     choices: ['Start Check']
 }
 
 timeline.push(audio_check_instructions, audio_check_reset);
+
 for (let i = 0; i < audiocheck_trials_first.length; i++) {
     timeline.push(audiocheck_trials_first[i][0]);
     timeline.push(audiocheck_trials_first[i][1]);
@@ -394,77 +397,13 @@ for (let i = 0; i < audiocheck_trials_second.length; i++) {
 
 timeline.push(audio_check_second_evaluate, audio_check_after_bad, audio_check_after_good);
 
-
-//audio warning
-const audio_warn = {
-    type: jsPsychHtmlButtonResponse,
-    choices: ['Start'],
-    stimulus: `
-    <div style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
-        <p>This study requires you to listen to audio clips. To ensure you can adequately hear the audio presented in this study, the next page will have an audio attention check. Please wear headphones, and be prepared to adjust the volume on your device if necessary.<br><br>When you are ready to begin the audio attention check, click 'Start'.</p>
-    </div>
-    `,
-    response_ends_trial: true
-};
-    
-//audio check
-const audio_check = {
-    type: jsPsychAudioButtonResponse,
-    stimulus: 'audio/gift.wav',
-    choices: ['dog', 'friend', 'gift', 'smile', 'blue'],
-    prompt: '<p><br>This is an attention check. <br><br> Click on the word that is being repeated by the speaker.</p>',
-    response_ends_trial: true,
-    trial_duration: 20000,
-    on_finish: function(data) {
-        data.correct = (data.response == 2); // mark correct or incorrect
-    }    
-};
-
-// feedback trial
-const feedback = {
-  type: jsPsychHtmlButtonResponse,
-  stimulus: function() {
-    const last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
-    if (last_trial_correct) {
-      return "<p>Correct! You are ready to begin the study.</p>";
-    } else {
-      return "<p>Incorrect. Please make sure your audio is working and try again.</p>";
-    }
-  },
-  choices: function() {
-    const last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
-    if (last_trial_correct) {
-      return ['Begin Study'];
-    } else {
-      return ['Try Again'];
-    }
-  }
-};
-
-// loop node: repeats until participant passes
-const audio_check_loop = {
-  timeline: [audio_check, feedback],
-  loop_function: function() {
-    const last_trial_correct = jsPsych.data.get().last(2).values()[0].correct;
-    if (last_trial_correct) {
-      return false; // stop looping when correct
-    } else {
-      return true; // repeat until correct
-    }
-  }
-};
-
-//timeline.push(audio_warn, audio_check_loop); //cut for testing
-
 //INSTRUCTIONS
 const instructions = {
     type: jsPsychHtmlButtonResponse,
     stimulus: `
-    <div style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
-        <p>NOTE: THIS IS A SAMPLE STUDY WITH A REDUCED NUMBER OF TRIALS</p>
-        <br><br>
+    <div class="gen_ins"; style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
         <p>In this study, you will listen to sentences produced by a variety of speakers. For each trial, you will hear one of these sentences. While the clip plays, you will be prompted to select one of two labels that best describes the speaker. To select a response, press either the ‘D’ or ‘K’ key on your keyboard. Please respond as quickly as possible. If you do not respond within 10 seconds, the experiment will advance automatically.</p>
-        <br><br>
+        <p>This is a pilot. There may be bugs. </p>
         <p>If you understand the instructions and are ready to begin the practice trials, click ‘Continue’.</p>
     </div>
     `,
@@ -474,11 +413,21 @@ const instructions = {
 
 timeline.push(instructions);
 
-//stim_list = DEMOsampleBalancedBlocks(trial_objects, 8, 2); //using DEMO SAMPLING - CHANGE LATER
-stim_list = sampleBalancedBlocks(trial_objects, 8, 10);
+stim_list = sampleBalancedBlocks(trial_objects, 6, 12);
 
 //LISTENING TRIALS
 //BLOCK 1
+const block_1_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class=\"header\">BLOCK 1</div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">EXPRESSIVE<br><br><b>D</b></div><div class=\"option\">UNEXPRESSIVE<br><br><b>K</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_1 = create_tv_array(stim_list[0]);
 const block_1 = {
     timeline: [
@@ -488,10 +437,27 @@ const block_1 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">MASCULINE<br><br><b>D</b></div><div class=\"option\">FEMININE<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">EXPRESSIVE<br><br><b>D</b></div><div class=\"option\">UNEXPRESSIVE<br><br><b>K</b></div></div>`,
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'expressive',
+                    k: 'unexpressive'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -507,6 +473,17 @@ const block_1 = {
 };
 
 //BLOCK 2
+const block_2_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class=\"header\">BLOCK 2</div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">SMART<br><br><b>D</b></div><div class=\"option\">AVERAGE<br><br><b>K</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_2 = create_tv_array(stim_list[1]);
 const block_2 = {
     timeline: [
@@ -516,10 +493,27 @@ const block_2 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">INTELLIGENT<br><br><b>D</b></div><div class=\"option\">UNINTELLIGENT<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">SMART<br><br><b>D</b></div><div class=\"option\">AVERAGE<br><br><b>K</b></div></div>`,
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'smart',
+                    k: 'average'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -534,7 +528,30 @@ const block_2 = {
     randomize_order: true
 };
 
+//BLOCK 2 ATTENTION CHECK 
+const block_2_attention = {
+  type: jsPsychHtmlButtonResponse,
+  choices: ["tall and short", "expressive and unexpressive", "smart and average"],
+  stimulus: "This is an attention check. Please select which labels you were using in the previous block.",
+  response_ends_trial: true,
+  trial_duration: 10000,
+  on_finish: function(data) {
+        data.correct = (data.response == 2); // mark correct or incorrect
+    } 
+};
+
 //BLOCK 3
+const block_3_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class=\"header\">BLOCK 3</div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">WARM<br><br><b>D</b></div><div class=\"option\">COLD<br><br><b>K</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_3 = create_tv_array(stim_list[2]);
 const block_3 = {
     timeline: [
@@ -544,10 +561,27 @@ const block_3 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">NERVOUS<br><br><b>D</b></div><div class=\"option\">CALM<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">WARM<br><br><b>D</b></div><div class=\"option\">COLD<br><br><b>K</b></div></div>`,
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'warm',
+                    k: 'cold'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -563,6 +597,17 @@ const block_3 = {
 };
 
 //BLOCK 4
+const block_4_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class=\"header\">BLOCK 4</div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">ATYPICAL<br><br><b>D</b></div><div class=\"option\">TYPICAL<br><br><b>K</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_4 = create_tv_array(stim_list[3]);
 const block_4 = {
     timeline: [
@@ -572,10 +617,27 @@ const block_4 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">SOCIALLY<br>GRACEFUL<br><br><b>D</b></div><div class=\"option\">SOCIALLY<br>AWKWARD<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">ATYPICAL<br><br><b>D</b></div><div class=\"option\">TYPICAL<br><br><b>K</b></div></div>`,
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'atypical',
+                    k: 'typical'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -590,7 +652,29 @@ const block_4 = {
     randomize_order: true
 };
 
+const block_4_attention = {
+  type: jsPsychHtmlButtonResponse,
+  choices: ["confident and insecure", "typical and atypical", "smart and average"],
+  stimulus: "This is an attention check. Please select which labels you were using in the previous block.",
+  response_ends_trial: true,
+  trial_duration: 10000,
+  on_finish: function(data) {
+        data.correct = (data.response == 1); // mark correct or incorrect
+    } 
+};
+
 //BLOCK 5
+const block_5_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class=\"header\">BLOCK 5</div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">CONFIDENT<br><br><b>D</b></div><div class=\"option\">INSECURE<br><br><b>K</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_5 = create_tv_array(stim_list[4]);
 const block_5 = {
     timeline: [
@@ -600,10 +684,27 @@ const block_5 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">FEMININE<br><br><b>D</b></div><div class=\"option\">MASCULINE<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">CONFIDENT<br><br><b>D</b></div><div class=\"option\">INSECURE<br><br><b>K</b></div></div>`,
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'confident',
+                    k: 'insecure'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -619,6 +720,17 @@ const block_5 = {
 };
 
 //BLOCK 6
+const block_6_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class=\"header\">BLOCK 6</div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">FEMININE<br><br><b>D</b></div><div class=\"option\">MASCULINE<br><br><b>K</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+}
+
 let tv_array_6 = create_tv_array(stim_list[5]);
 const block_6 = {
     timeline: [
@@ -628,10 +740,27 @@ const block_6 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">UNINTELLIGENT<br><br><b>D</b></div><div class=\"option\">INTELLIGENT<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">FEMININE<br><br><b>D</b></div><div class=\"option\">MASCULINE<br><br><b>K</b></div></div>`,
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'feminine',
+                    k: 'masculine'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -646,63 +775,16 @@ const block_6 = {
     randomize_order: true
 };
 
-//BLOCK 7
-let tv_array_7 = create_tv_array(stim_list[6]);
-const block_7 = {
-    timeline: [
-        {
-            type: jsPsychAudioKeyboardResponse,
-            choices: ['d', 'k'],
-            stimulus: jsPsych.timelineVariable('stimulus'),
-            response_allowed_while_playing: true,
-            trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">CALM<br><br><b>D</b></div><div class=\"option\">NERVOUS<br><br><b>K</b></div></div>`,
-            data: {
-                spk: jsPsych.timelineVariable('speaker'),
-                sentence_id: jsPsych.timelineVariable('id')
-            }
-        },
-        {
-            type: jsPsychHtmlKeyboardResponse,
-            choices: [""],
-            stimulus: "",
-            response_ends_trial: false,
-            trial_duration: 500
-        }
-    ],
-    timeline_variables: tv_array_7,
-    randomize_order: true
-};
-
-//BLOCK 8
-let tv_array_8 = create_tv_array(stim_list[7]);
-const block_8 = {
-    timeline: [
-        {
-            type: jsPsychAudioKeyboardResponse,
-            choices: ['d', 'k'],
-            stimulus: jsPsych.timelineVariable('stimulus'),
-            response_allowed_while_playing: true,
-            trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">SOCIALLY<br>AWKWARD<br><br><b>D</b></div><div class=\"option\">SOCIALLY<br>GRACEFUL<br><br><b>K</b></div></div>`,
-            data: {
-                spk: jsPsych.timelineVariable('speaker'),
-                sentence_id: jsPsych.timelineVariable('id')
-            }
-        },
-        {
-            type: jsPsychHtmlKeyboardResponse,
-            choices: [""],
-            stimulus: "",
-            response_ends_trial: false,
-            trial_duration: 500
-        }
-    ],
-    timeline_variables: tv_array_8,
-    randomize_order: true
-};
-
-timeline.push(block_1, block_2, block_3, block_4, block_5, block_6, block_7, block_8);
+timeline.push(
+  block_1_header, block_1, 
+  block_2_header, block_2, 
+  block_2_attention,
+  block_3_header, block_3, 
+  block_4_header, block_4, 
+  block_4_attention,
+  block_5_header, block_5, 
+  block_6_header, block_6
+);
 
 //SURVEY INSTRUCTIONS
 const transition = {
@@ -724,7 +806,7 @@ const questionnaire = {
     elements: [
       {
         type: "html",
-        html: "<p>Please respond to the following questions if you are comfortable doing so. When you have completed the survey, click 'Finish' at the bottom of the page to be directed to the end of the experiment.</p>"
+        html: "<p>Please respond to the following questions. If there is a question you are not comfortable responding to, please enter 'NA' into the textbox or select 'Prefer not to answer'. When you have completed the survey, click 'Finish' at the bottom of the page to be directed to the end of the experiment.</p>"
       },
       {
         type: "boolean",
@@ -739,27 +821,32 @@ const questionnaire = {
         type: "text",
         name: "age",
         title: "Age:",
-        inputType: "number"
+        inputType: "number",
+        required: true
       },
       {
         type: "comment",
         name: "gender",
-        title: "What is your gender identity?"
+        title: "What is your gender identity?",
+        required: true
       },
       {
         type: "comment",
         name: "race",
-        title: "What is your racial identity?"
+        title: "What is your racial identity?",
+        required: true
       },
       {
         type: "comment",
         name: "ethnicity",
-        title: "What is your ethnicity?"
+        title: "What is your ethnicity?",
+        required: true
       },
       {
         type: "comment",
         name: "language",
-        title: "What language(s) did you speak at home when you were growing up?"
+        title: "What language(s) did you speak at home when you were growing up?",
+        required: true
       },
       {
         type: "radiogroup",
@@ -849,7 +936,7 @@ var end_demo = {
 var thanks = {
   type: jsPsychHtmlKeyboardResponse,
   stimulus: `<p>You've finished the study. Thank you for your time!</p>
-    <p><a href="https://app.prolific.com/submissions/complete?cc=C1BQGMWP">Click here to return to Prolific and complete the study</a>.</p>`,
+    <p><a href="https://app.prolific.com/submissions/complete?cc=C1ASD33E"> Click here to return to Prolific and complete the study</a>.</p>`,
   choices: "NO_KEYS"
 };
 
