@@ -479,7 +479,7 @@ const block_2_header = {
   stimulus: `
   <div class=\"header_container\"><div class=\"header\">BLOCK 2</div></div>
   `,
-  prompt: `<div class=\"option_container\"><div class=\"option\">GENTLE<br><br><b>D</b></div><div class=\"option\">HARSH<br><br><b>K</b></div></div>`,
+  prompt: `<div class=\"option_container\"><div class=\"option\">FRIENDLY<br><br><b>D</b></div><div class=\"option\">UNFRIENDLY<br><br><b>K</b></div></div>`,
   response_ends_trial: false, 
   trial_duration: 3000
 };
@@ -493,7 +493,7 @@ const block_2 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">GENTLE<br><br><b>D</b></div><div class=\"option\">HARSH<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">FRIENDLY<br><br><b>D</b></div><div class=\"option\">UNFRIENDLY<br><br><b>K</b></div></div>`,
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
@@ -509,8 +509,8 @@ const block_2 = {
 
                 // response mappings
                 const keymap = {
-                    d: 'gentle',
-                    k: 'harsh'
+                    d: 'friendly',
+                    k: 'unfriendly'
                 };
 
                 data.label = keymap[data.response] || null;
@@ -530,10 +530,10 @@ const block_2 = {
 
 const block_2_attention = {
   type: jsPsychHtmlButtonResponse,
-  choices: ["tall and short", "expressive and unexpressive", "smart and average"],
+  choices: ["tall and short", "awkward and comfortable", "friendly and unfriendly"],
   stimulus: "This is an attention check. Please select which labels you were using in the previous block.",
   response_ends_trial: true,
-  trial_duration: 10000,
+  trial_duration: 15000,
   on_finish: function(data) {
         data.correct = (data.response == 2); // mark correct or incorrect
     } 
@@ -653,10 +653,10 @@ const block_4 = {
 
 const block_4_attention = {
   type: jsPsychHtmlButtonResponse,
-  choices: ["confident and insecure", "typical and atypical", "smart and average"],
+  choices: ["emotive and robotic", "nervous and calm", "smart and average"],
   stimulus: "This is an attention check. Please select which labels you were using in the previous block.",
   response_ends_trial: true,
-  trial_duration: 10000,
+  trial_duration: 15000,
   on_finish: function(data) {
         data.correct = (data.response == 1); // mark correct or incorrect
     } 
@@ -683,7 +683,7 @@ const block_5 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">INTELLIGENT<br><br><b>D</b></div><div class=\"option\">UNINTELLIGENT<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>D</b></div><div class=\"option\">DULL<br><br><b>K</b></div></div>`,
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
@@ -699,8 +699,8 @@ const block_5 = {
 
                 // response mappings
                 const keymap = {
-                    d: 'intelligent',
-                    k: 'unintelligent'
+                    d: 'sharp',
+                    k: 'dull'
                 };
 
                 data.label = keymap[data.response] || null;
@@ -934,7 +934,8 @@ var end_demo = {
 //THANKS// - CHANGE LINK
 var thanks = {
   type: jsPsychHtmlKeyboardResponse,
-  stimulus: `<p>You've finished the study. Thank you for your time!</p>
+  stimulus: `<p>You've finished the pilot study. Thank you for your time!</p>
+    <br>
     <p><a href="https://app.prolific.com/submissions/complete?cc=C1ASD33E"> Click here to return to Prolific and complete the study</a>.</p>`,
   choices: "NO_KEYS"
 };

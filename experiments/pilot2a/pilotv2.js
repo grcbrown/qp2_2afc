@@ -534,7 +534,7 @@ const block_2_attention = {
   choices: ["tall and short", "expressive and unexpressive", "smart and average"],
   stimulus: "This is an attention check. Please select which labels you were using in the previous block.",
   response_ends_trial: true,
-  trial_duration: 10000,
+  trial_duration: 15000,
   on_finish: function(data) {
         data.correct = (data.response == 2); // mark correct or incorrect
     } 
@@ -657,7 +657,7 @@ const block_4_attention = {
   choices: ["confident and insecure", "typical and atypical", "smart and average"],
   stimulus: "This is an attention check. Please select which labels you were using in the previous block.",
   response_ends_trial: true,
-  trial_duration: 10000,
+  trial_duration: 15000,
   on_finish: function(data) {
         data.correct = (data.response == 1); // mark correct or incorrect
     } 
@@ -935,7 +935,8 @@ var end_demo = {
 //THANKS// - CHANGE LINK
 var thanks = {
   type: jsPsychHtmlKeyboardResponse,
-  stimulus: `<p>You've finished the study. Thank you for your time!</p>
+  stimulus: `<p>You've finished the pilot study. Thank you for your time!</p>
+    <br>
     <p><a href="https://app.prolific.com/submissions/complete?cc=C1ASD33E"> Click here to return to Prolific and complete the study</a>.</p>`,
   choices: "NO_KEYS"
 };
