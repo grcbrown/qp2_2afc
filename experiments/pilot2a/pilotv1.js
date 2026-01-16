@@ -394,68 +394,6 @@ for (let i = 0; i < audiocheck_trials_second.length; i++) {
 
 timeline.push(audio_check_second_evaluate, audio_check_after_bad, audio_check_after_good);
 
-
-//audio warning
-const audio_warn = {
-    type: jsPsychHtmlButtonResponse,
-    choices: ['Start'],
-    stimulus: `
-    <div style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
-        <p>This study requires you to listen to audio clips. To ensure you can adequately hear the audio presented in this study, the next page will have an audio attention check. Please wear headphones, and be prepared to adjust the volume on your device if necessary.<br><br>When you are ready to begin the audio attention check, click 'Start'.</p>
-    </div>
-    `,
-    response_ends_trial: true
-};
-    
-//audio check
-const audio_check = {
-    type: jsPsychAudioButtonResponse,
-    stimulus: 'audio/gift.wav',
-    choices: ['dog', 'friend', 'gift', 'smile', 'blue'],
-    prompt: '<p><br>This is an attention check. <br><br> Click on the word that is being repeated by the speaker.</p>',
-    response_ends_trial: true,
-    trial_duration: 20000,
-    on_finish: function(data) {
-        data.correct = (data.response == 2); // mark correct or incorrect
-    }    
-};
-
-// feedback trial
-const feedback = {
-  type: jsPsychHtmlButtonResponse,
-  stimulus: function() {
-    const last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
-    if (last_trial_correct) {
-      return "<p>Correct! You are ready to begin the study.</p>";
-    } else {
-      return "<p>Incorrect. Please make sure your audio is working and try again.</p>";
-    }
-  },
-  choices: function() {
-    const last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
-    if (last_trial_correct) {
-      return ['Begin Study'];
-    } else {
-      return ['Try Again'];
-    }
-  }
-};
-
-// loop node: repeats until participant passes
-const audio_check_loop = {
-  timeline: [audio_check, feedback],
-  loop_function: function() {
-    const last_trial_correct = jsPsych.data.get().last(2).values()[0].correct;
-    if (last_trial_correct) {
-      return false; // stop looping when correct
-    } else {
-      return true; // repeat until correct
-    }
-  }
-};
-
-//timeline.push(audio_warn, audio_check_loop); //cut for testing
-
 //INSTRUCTIONS
 const instructions = {
     type: jsPsychHtmlButtonResponse,
@@ -474,7 +412,8 @@ const instructions = {
 
 timeline.push(instructions);
 
-stim_list = sampleBalancedBlocksPILOT(trial_objects, 6, 12, 288) 
+console.log(typeof sampleBalancedBlocksPILOT);
+const stim_list = sampleBalancedBlocksPILOT(trial_objects, 6, 12, 288); 
 //stim_list = sampleBalancedBlocks(trial_objects, 8, 10);
 
 //LISTENING TRIALS
