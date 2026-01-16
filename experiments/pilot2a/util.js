@@ -11,48 +11,6 @@ function create_tv_array(json_object) {
     return tv_array;
 }
 
-function DEMOsampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 2) {
-    // --- Group by speaker ---
-    const bySpeaker = {};
-    for (const t of trial_objects) {
-        if (!bySpeaker[t.speaker]) bySpeaker[t.speaker] = [];
-        bySpeaker[t.speaker].push(t);
-    }
-
-    const speakers = Object.keys(bySpeaker).map(Number);
-    const samples = [];
-
-    for (let b = 0; b < blocks; b++) {
-        const blockSample = [];
-
-        for (const spk of speakers) {
-            // Shuffle speaker's items
-            const shuffled = [...bySpeaker[spk]].sort(() => Math.random() - 0.5);
-
-            // Pick items with unique IDs
-            const selected = [];
-            const seenIds = new Set();
-
-            for (const item of shuffled) {
-                if (!seenIds.has(item.id)) {
-                    selected.push(item);
-                    seenIds.add(item.id);
-                }
-                if (selected.length === perSpeaker) break;
-            }
-
-            if (selected.length < perSpeaker) {
-                throw new Error(`Not enough unique items for speaker ${spk}`);
-            }
-
-            blockSample.push(...selected);
-        }
-
-        samples.push(blockSample);
-    }
-
-    return samples;
-}
 
 function sampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 10) {
     // group by ID
@@ -110,6 +68,96 @@ function sampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 10) {
         }
 
         samples.push(sample);
+    }
+
+    return samples;
+}
+
+function sampleBalancedBlocksPILOT(
+    trial_objects,
+    blocks = 6,
+    speakersPerBlock = 12,
+    totalIds = 288
+) {
+    // ---- group trials by sentence ID ----
+    const byId = {};
+    for (const t of trial_objects) {
+        if (!byId[t.id]) byId[t.id] = [];
+        byId[t.id].push(t);
+    }
+
+    const allIds = Object.keys(byId);
+
+    if (allIds.length < totalIds) {
+        throw new Error("Not enough sentence IDs to preselect from.");
+    }
+
+    // ---- randomly preselect 288 sentence IDs ----
+    for (let i = allIds.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allIds[i], allIds[j]] = [allIds[j], allIds[i]];
+    }
+
+    const selectedIds = allIds.slice(0, totalIds);
+
+    // ---- sanity check ----
+    const idsPerBlock = speakersPerBlock; // 12
+    if (selectedIds.length !== blocks * idsPerBlock) {
+        throw new Error("ID count mismatch: need blocks × idsPerBlock.");
+    }
+
+    // ---- partition IDs into blocks ----
+    const idBlocks = [];
+    for (let b = 0; b < blocks; b++) {
+        idBlocks.push(
+            selectedIds.slice(
+                b * idsPerBlock,
+                (b + 1) * idsPerBlock
+            )
+        );
+    }
+
+    // ---- identify speakers ----
+    const speakers = [...new Set(trial_objects.map(o => o.speaker))];
+    if (speakers.length !== 4) {
+        throw new Error("Expected exactly 4 speakers.");
+    }
+
+    // ---- sample trials ----
+    const samples = [];
+
+    for (let b = 0; b < blocks; b++) {
+        const blockIds = idBlocks[b];
+        const blockSample = [];
+        const speakerCounts = {};
+
+        speakers.forEach(s => speakerCounts[s] = 0);
+
+        for (const id of blockIds) {
+            // shuffle speaker realizations for this sentence
+            const candidates = [...byId[id]].sort(() => Math.random() - 0.5);
+
+            for (const item of candidates) {
+                const s = item.speaker;
+
+                if (speakerCounts[s] < speakersPerBlock) {
+                    blockSample.push(item);
+                    speakerCounts[s]++;
+                    break; // one realization per sentence per block
+                }
+            }
+        }
+
+        // final safety check
+        speakers.forEach(s => {
+            if (speakerCounts[s] !== speakersPerBlock) {
+                throw new Error(
+                    `Speaker imbalance in block ${b}: ${s} has ${speakerCounts[s]}`
+                );
+            }
+        });
+
+        samples.push(blockSample);
     }
 
     return samples;
