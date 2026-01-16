@@ -256,7 +256,6 @@ var preload_trial = {
     "audio/752_609_B4.wav",
     "audio/573_609_B4.wav",
     "audio/752_610_B4.wav",
-    "audio/573_609_redo.wav",
     "audio/752_611_B3.wav",
     "audio/573_610_B3.wav",
     "audio/752_612_B3.wav",
@@ -670,7 +669,7 @@ const block_5_header = {
   stimulus: `
   <div class=\"header_container\"><div class=\"header\">BLOCK 5</div></div>
   `,
-  prompt: `<div class=\"option_container\"><div class=\"option\">INTELLIGENT<br><br><b>D</b></div><div class=\"option\">UNINTELLIGENT<br><br><b>K</b></div></div>`,
+  prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>D</b></div><div class=\"option\">DULL<br><br><b>K</b></div></div>`,
   response_ends_trial: false, 
   trial_duration: 3000
 };
@@ -923,21 +922,12 @@ const save_data = {
 
 timeline.push(save_data);
 
-//FOR PILOTING - END DEMO
-var end_demo = {
-  type: jsPsychHtmlKeyboardResponse,
-  stimulus: `<p>You've finished the demo! You can close the tab to end the experiment or refresh to run it again.</p>`,
-  choices: "NO_KEYS"
-};
-
-//timeline.push(end_demo);
-
 //THANKS// - CHANGE LINK
 var thanks = {
   type: jsPsychHtmlKeyboardResponse,
-  stimulus: `<p>You've finished the pilot study. Thank you for your time!</p>
-    <br>
-    <p><a href="https://app.prolific.com/submissions/complete?cc=C1ASD33E"> Click here to return to Prolific and complete the study</a>.</p>`,
+  stimulus: `<p>You've finished the pilot study. Thank you for your time! </p>
+    <br><br>
+    <p> <a href="https://app.prolific.com/submissions/complete?cc=C1ASD33E"> Click here to return to Prolific and complete the study</a>.</p>`,
   choices: "NO_KEYS"
 };
 

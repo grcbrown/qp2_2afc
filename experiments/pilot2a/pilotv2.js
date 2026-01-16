@@ -603,7 +603,7 @@ const block_4_header = {
   stimulus: `
   <div class=\"header_container\"><div class=\"header\">BLOCK 4</div></div>
   `,
-  prompt: `<div class=\"option_container\"><div class=\"option\">ATYPICAL<br><br><b>D</b></div><div class=\"option\">TYPICAL<br><br><b>K</b></div></div>`,
+  prompt: `<div class=\"option_container\"><div class=\"option\">UNCONVENTIONAL<br><br><b>D</b></div><div class=\"option\">CONVENTIONAL<br><br><b>K</b></div></div>`,
   response_ends_trial: false, 
   trial_duration: 3000
 };
@@ -617,7 +617,7 @@ const block_4 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">ATYPICAL<br><br><b>D</b></div><div class=\"option\">TYPICAL<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">UNCONVENTIONAL<br><br><b>D</b></div><div class=\"option\">CONVENTIONAL<br><br><b>K</b></div></div>`,
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
@@ -633,8 +633,8 @@ const block_4 = {
 
                 // response mappings
                 const keymap = {
-                    d: 'atypical',
-                    k: 'typical'
+                    d: 'unconventional',
+                    k: 'conventional'
                 };
 
                 data.label = keymap[data.response] || null;
@@ -654,7 +654,7 @@ const block_4 = {
 
 const block_4_attention = {
   type: jsPsychHtmlButtonResponse,
-  choices: ["confident and insecure", "typical and atypical", "smart and average"],
+  choices: ["confident and insecure", "conventional and unconventional", "smart and average"],
   stimulus: "This is an attention check. Please select which labels you were using in the previous block.",
   response_ends_trial: true,
   trial_duration: 15000,
@@ -935,9 +935,9 @@ var end_demo = {
 //THANKS// - CHANGE LINK
 var thanks = {
   type: jsPsychHtmlKeyboardResponse,
-  stimulus: `<p>You've finished the pilot study. Thank you for your time!</p>
-    <br>
-    <p><a href="https://app.prolific.com/submissions/complete?cc=C1ASD33E"> Click here to return to Prolific and complete the study</a>.</p>`,
+  stimulus: `<p>You've finished the pilot study. Thank you for your time! </p>
+    <br><br>
+    <p> <a href="https://app.prolific.com/submissions/complete?cc=C1ASD33E"> Click here to return to Prolific and complete the study</a>.</p>`,
   choices: "NO_KEYS"
 };
 
