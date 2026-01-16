@@ -12,7 +12,7 @@ function create_tv_array(json_object) {
 }
 
 
-function sampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 10) {
+function sampleBalancedBlocksOLD(trial_objects, blocks = 8, perSpeaker = 10) {
     // ---- group by sentence ID ----
     const byId = {};
     for (const t of trial_objects) {
@@ -59,6 +59,85 @@ function sampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 10) {
     return samples;
 }
 
+function sampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 10) {
+    // ---- group by sentence ID ----
+    const byId = {};
+    for (const t of trial_objects) {
+        if (!byId[t.id]) byId[t.id] = [];
+        byId[t.id].push(t);
+    }
+
+    // all unique sentence IDs available
+    const allIds = Object.keys(byId);
+
+    // ---- sanity checks ----
+    if (allIds.length < blocks * perSpeaker) {
+        throw new Error(
+            `Not enough unique sentence IDs: need ${blocks * perSpeaker}`
+        );
+    }
+
+    // each sentence should have exactly 4 speakers
+    for (const id of allIds) {
+        if (byId[id].length !== 4) {
+            throw new Error(`Sentence ID ${id} does not have 4 speakers`);
+        }
+    }
+
+    // ---- shuffle IDs ----
+    for (let i = allIds.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allIds[i], allIds[j]] = [allIds[j], allIds[i]];
+    }
+
+    // ---- select ONLY the IDs we need ----
+    const selectedIds = allIds.slice(0, blocks * perSpeaker);
+
+    // ---- partition IDs into blocks ----
+    const idBlocks = [];
+    for (let b = 0; b < blocks; b++) {
+        idBlocks.push(
+            selectedIds.slice(
+                b * perSpeaker,
+                (b + 1) * perSpeaker
+            )
+        );
+    }
+
+    // ---- build samples ----
+    const samples = [];
+
+    for (let b = 0; b < blocks; b++) {
+        const sample = [];
+
+        for (const id of idBlocks[b]) {
+            // add all 4 speakers for this sentence
+            const group = [...byId[id]].sort(() => Math.random() - 0.5);
+            sample.push(...group);
+        }
+
+        // ---- block-level safety check ----
+        const idsInBlock = new Set(sample.map(t => t.id));
+        if (idsInBlock.size !== perSpeaker) {
+            throw new Error(`Sentence ID repeated within block ${b}`);
+        }
+
+        if (sample.length !== perSpeaker * 4) {
+            throw new Error(`Block ${b} has wrong number of trials`);
+        }
+
+        const speakerCounts = {};
+            sample.forEach(t => {
+            speakerCounts[t.speaker] = (speakerCounts[t.speaker] || 0) + 1;
+        });
+
+        console.log(`Block ${b}`, speakerCounts);
+        
+        samples.push(sample);
+    }
+
+    return samples;
+}
 
 function sampleBalancedBlocksPILOT(
     trial_objects,
