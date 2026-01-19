@@ -404,7 +404,7 @@ const instructions = {
     <div class="gen_ins"; style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
         <p>In this study, you will listen to sentences produced by a variety of speakers. For each trial, you will hear one of these sentences. While the clip plays, you will be prompted to select one of two labels that best describes the speaker. To select a response, press either the ‘D’ or ‘K’ key on your keyboard. Please respond as quickly as possible. If you do not respond within 10 seconds, the experiment will advance automatically.</p>
         <p>This is a pilot. There may be bugs. </p>
-        <p>If you understand the instructions and are ready to begin the practice trials, click ‘Continue’.</p>
+        <p>If you understand the instructions and are ready to begin, click ‘Continue’.</p>
     </div>
     `,
     choices: ['Continue'],

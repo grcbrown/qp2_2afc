@@ -25,7 +25,7 @@ theme_set(theme_bw())
 ## Load Data
 ```{r load data}
 ## read messy dataset
-df.pilot <- read_csv("./data/sample_data_pilot_2av1.csv") # recode as df.responses
+df.pilot <- read_csv("./data/pilot2a.csv") # recode as df.responses
 #df.survey <- read_csv("./data/pilot_survey.csv")
 #df.pilot <- left_join(x=df.trials,y=df.survey,by="subject_id")
 
@@ -72,6 +72,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
   labs(x = "Talker",
        y = "Mean Proportion 'Awkward'") + 
   scale_fill_manual(values = cbPalette,
@@ -90,6 +91,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
   labs(x = "Talker",
        y = "Mean Response Time (ms)") + 
   scale_fill_manual(values = cbPalette,
@@ -121,6 +123,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
   labs(x = "Talker",
        y = "Mean Proportion 'Friendly'") + 
   scale_fill_manual(values = cbPalette,
@@ -139,6 +142,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
   labs(x = "Talker",
        y = "Mean Response Time (ms)") + 
   scale_fill_manual(values = cbPalette,
@@ -169,6 +173,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
   labs(x = "Talker",
        y = "Mean Proportion 'Emotive'") + 
   scale_fill_manual(values = cbPalette,
@@ -187,6 +192,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
   labs(x = "Talker",
        y = "Mean Response Time (ms)") + 
   scale_fill_manual(values = cbPalette,
@@ -217,6 +223,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
   labs(x = "Talker",
        y = "Mean Proportion 'Nervous'") + 
   scale_fill_manual(values = cbPalette,
@@ -235,6 +242,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
   labs(x = "Talker",
        y = "Mean Response Time (ms)") + 
   scale_fill_manual(values = cbPalette,
@@ -265,6 +273,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
   labs(x = "Talker",
        y = "Mean Proportion 'Sharp'") + 
   scale_fill_manual(values = cbPalette,
@@ -283,6 +292,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
   labs(x = "Talker",
        y = "Mean Response Time (ms)") + 
   scale_fill_manual(values = cbPalette,
@@ -307,14 +317,15 @@ df.pilot %>%
 df.pilot %>% 
   filter(label == "masculine" | label == "feminine") %>% # select responses of interest
   ggplot(mapping = aes(x = talker, 
-                       y = response_ref,
+                       y = 1 - response_ref,
                        fill = talker)) +
   stat_summary(fun = "mean",
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
   labs(x = "Talker",
-       y = "Mean Proportion 'Masculine'") + 
+       y = "Mean Proportion 'Feminine'") + 
   scale_fill_manual(values = cbPalette,
                     name = "Talker")
 ```
@@ -331,6 +342,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
   labs(x = "Talker",
        y = "Mean Response Time (ms)") + 
   scale_fill_manual(values = cbPalette,
@@ -349,11 +361,11 @@ df.pilot %>%
                     name = "Talker")
 ```
 
-### XX / XX
+### unexpressive / expressive
 #### response 
 ```{r}
 df.pilot %>% 
-  filter(label == "emotive" | label == "robotic") %>% # select responses of interest
+  filter(label == "expressive" | label == "unexpressive") %>% # select responses of interest
   ggplot(mapping = aes(x = talker, 
                        y = response_ref,
                        fill = talker)) +
@@ -361,8 +373,9 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
   labs(x = "Talker",
-       y = "Mean Proportion 'Emotive'") + 
+       y = "Mean Proportion 'Expressive'") + 
   scale_fill_manual(values = cbPalette,
                     name = "Talker")
 ```
@@ -371,7 +384,7 @@ df.pilot %>%
 ```{r}
 # central tendencies 
 df.pilot %>% 
-  filter(label == "emotive" | label == "robotic") %>% # select responses of interest
+  filter(label == "expressive" | label == "unexpressive") %>% # select responses of interest
   ggplot(mapping = aes(x = talker, 
                        y = rt,
                        fill = talker)) +
@@ -379,6 +392,7 @@ df.pilot %>%
                geom = "bar") + 
   stat_summary(fun.data = "mean_cl_boot",
                geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
   labs(x = "Talker",
        y = "Mean Response Time (ms)") + 
   scale_fill_manual(values = cbPalette,
@@ -386,8 +400,208 @@ df.pilot %>%
   
 # trend within block 
 df.pilot %>% 
-  filter(label == "emotive" | label == "robotic") %>% # select responses of interest
+  filter(label == "expressive" | label == "unexpressive") %>% # select responses of interest
+  ggplot(mapping = aes(x = trial_index - 42, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+### smart / average
+#### response 
+```{r}
+df.pilot %>% 
+  filter(label == "smart" | label == "average") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = response_ref,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Smart'") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+#### response time
+```{r}
+# central tendencies 
+df.pilot %>% 
+  filter(label == "smart" | label == "average") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker",
+       y = "Mean Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+  
+# trend within block 
+df.pilot %>% 
+  filter(label == "smart" | label == "average") %>% # select responses of interest
+  ggplot(mapping = aes(x = trial_index - 139, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+### cold / warm
+#### response 
+```{r}
+df.pilot %>% 
+  filter(label == "cold" | label == "warm") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = response_ref,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Warm'") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+#### response time
+```{r}
+# central tendencies 
+df.pilot %>% 
+  filter(label == "cold" | label == "warm") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker",
+       y = "Mean Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+  
+# trend within block 
+df.pilot %>% 
+  filter(label == "cold" | label == "warm") %>% # select responses of interest
   ggplot(mapping = aes(x = trial_index - 237, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+### conventional / unconventional
+#### response 
+```{r}
+df.pilot %>% 
+  filter(label == "conventional" | label == "unconventional") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = response_ref,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Unconventional'") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+#### response time
+```{r}
+# central tendencies 
+df.pilot %>% 
+  filter(label == "conventional" | label == "unconventional") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker",
+       y = "Mean Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+  
+# trend within block 
+df.pilot %>% 
+  filter(label == "conventional" | label == "unconventional") %>% # select responses of interest
+  ggplot(mapping = aes(x = trial_index - 334, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+### confident / insecure
+#### response 
+```{r}
+df.pilot %>% 
+  filter(label == "confident" | label == "insecure") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = 1 - response_ref,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Insecure'") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+```
+
+#### response time
+```{r}
+# central tendencies 
+df.pilot %>% 
+  filter(label == "confident" | label == "insecure") %>% # select responses of interest
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker",
+       y = "Mean Response Time (ms)") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+  
+# trend within block 
+df.pilot %>% 
+  filter(label == "confident" | label == "insecure") %>% # select responses of interest
+  ggplot(mapping = aes(x = trial_index - 432, 
                        y = rt, 
                        color = talker)) + 
   geom_smooth() + 
@@ -474,4 +688,9 @@ summary(fit.masculine)
 fit.masculine.rt <- lm(formula = rt ~ 1 + talker + label,
                    data = df.masculine)
 summary(fit.masculine.rt)
+
+emmeans(fit.masculine, 
+        specs = pairwise ~ talker) %>% 
+  pluck("contrasts") %>%
+  summary()
 ```

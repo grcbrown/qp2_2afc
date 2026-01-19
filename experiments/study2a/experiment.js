@@ -394,68 +394,6 @@ for (let i = 0; i < audiocheck_trials_second.length; i++) {
 
 timeline.push(audio_check_second_evaluate, audio_check_after_bad, audio_check_after_good);
 
-
-//audio warning
-const audio_warn = {
-    type: jsPsychHtmlButtonResponse,
-    choices: ['Start'],
-    stimulus: `
-    <div style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
-        <p>This study requires you to listen to audio clips. To ensure you can adequately hear the audio presented in this study, the next page will have an audio attention check. Please wear headphones, and be prepared to adjust the volume on your device if necessary.<br><br>When you are ready to begin the audio attention check, click 'Start'.</p>
-    </div>
-    `,
-    response_ends_trial: true
-};
-    
-//audio check
-const audio_check = {
-    type: jsPsychAudioButtonResponse,
-    stimulus: 'audio/gift.wav',
-    choices: ['dog', 'friend', 'gift', 'smile', 'blue'],
-    prompt: '<p><br>This is an attention check. <br><br> Click on the word that is being repeated by the speaker.</p>',
-    response_ends_trial: true,
-    trial_duration: 20000,
-    on_finish: function(data) {
-        data.correct = (data.response == 2); // mark correct or incorrect
-    }    
-};
-
-// feedback trial
-const feedback = {
-  type: jsPsychHtmlButtonResponse,
-  stimulus: function() {
-    const last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
-    if (last_trial_correct) {
-      return "<p>Correct! You are ready to begin the study.</p>";
-    } else {
-      return "<p>Incorrect. Please make sure your audio is working and try again.</p>";
-    }
-  },
-  choices: function() {
-    const last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
-    if (last_trial_correct) {
-      return ['Begin Study'];
-    } else {
-      return ['Try Again'];
-    }
-  }
-};
-
-// loop node: repeats until participant passes
-const audio_check_loop = {
-  timeline: [audio_check, feedback],
-  loop_function: function() {
-    const last_trial_correct = jsPsych.data.get().last(2).values()[0].correct;
-    if (last_trial_correct) {
-      return false; // stop looping when correct
-    } else {
-      return true; // repeat until correct
-    }
-  }
-};
-
-//timeline.push(audio_warn, audio_check_loop); //cut for testing
-
 //INSTRUCTIONS
 const instructions = {
     type: jsPsychHtmlButtonResponse,
@@ -465,7 +403,7 @@ const instructions = {
         <br><br>
         <p>In this study, you will listen to sentences produced by a variety of speakers. For each trial, you will hear one of these sentences. While the clip plays, you will be prompted to select one of two labels that best describes the speaker. To select a response, press either the ‘D’ or ‘K’ key on your keyboard. Please respond as quickly as possible. If you do not respond within 10 seconds, the experiment will advance automatically.</p>
         <br><br>
-        <p>If you understand the instructions and are ready to begin the practice trials, click ‘Continue’.</p>
+        <p>If you understand the instructions and are ready to begin, click ‘Continue’.</p>
     </div>
     `,
     choices: ['Continue'],
