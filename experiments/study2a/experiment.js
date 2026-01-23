@@ -8,6 +8,7 @@ const jsPsych = initJsPsych({
 });
 
 let timeline = []; //Empty timeline
+let blockTrialCounter = 0; //Counter for listening trial indexing 
 let blockOrderCounter = 0; //Counter for listening trial block indexing 
 
 //PRELOAD AUDIO//
@@ -352,7 +353,7 @@ const irb = {
             <h3>DESCRIPTION</h3>
             <p>You are invited to participate in a research study. Its general purpose is to understand how people perceive spoken language. We are interested in how people make use of varying properties of language to infer social information about a speaker. In this study, you will hear spoken sentences, and you will be asked to make simple decisions about the speaker of each sentence. Following this, you will be asked to complete a short demographic survey. Participation in this research is voluntary, and you are free to withdraw your consent at any time.</p>
             <h3>TIME INVOLVEMENT</h3> 
-            <p>Your participation will take approximately 15 to 20 minutes.</p>
+            <p>Your participation will take approximately 20 to 25 minutes.</p>
             <h3>PAYMENT</h3> 
             <p>You will be paid at the posted rate.</p>
             <h3>PRIVACY AND CONFIDENTIALITY</h3> 
@@ -403,7 +404,8 @@ const instructions = {
     type: jsPsychHtmlButtonResponse,
     stimulus: `
     <div class="gen_ins"; style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
-        <p>In this study, you will listen to sentences produced by a variety of speakers. For each trial, you will hear one of these sentences. While the clip is playing, you will be prompted to select one of two labels that best describes the speaker. To select a response, press either the ‘D’ or ‘K’ key on your keyboard. You may respond while the clip is playing. <strong>Please respond as quickly as possible.</strong> If you do not respond within 10 seconds, the experiment will advance automatically.</p>
+        <p>In this study, you will listen to sentences produced by a variety of speakers. For each trial, you will hear one of these sentences. While the clip is playing, you will be prompted to select one of two labels that best describes the speaker. To select a response, press either the ‘D’ or ‘K’ key on your keyboard. You may respond while the clip is playing.</p> 
+        <p><strong>Please respond as quickly as possible.</strong> If you do not respond within 10 seconds, the experiment will advance to the next trial automatically.</p>
         <p>If you understand the instructions and are ready to begin, click ‘Continue’.</p>
     </div>
     `,
