@@ -11,103 +11,85 @@ function create_tv_array(json_object) {
     return tv_array;
 }
 
-function DEMOsampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 2) {
-    // --- Group by speaker ---
-    const bySpeaker = {};
-    for (const t of trial_objects) {
-        if (!bySpeaker[t.speaker]) bySpeaker[t.speaker] = [];
-        bySpeaker[t.speaker].push(t);
-    }
-
-    const speakers = Object.keys(bySpeaker).map(Number);
-    const samples = [];
-
-    for (let b = 0; b < blocks; b++) {
-        const blockSample = [];
-
-        for (const spk of speakers) {
-            // Shuffle speaker's items
-            const shuffled = [...bySpeaker[spk]].sort(() => Math.random() - 0.5);
-
-            // Pick items with unique IDs
-            const selected = [];
-            const seenIds = new Set();
-
-            for (const item of shuffled) {
-                if (!seenIds.has(item.id)) {
-                    selected.push(item);
-                    seenIds.add(item.id);
-                }
-                if (selected.length === perSpeaker) break;
-            }
-
-            if (selected.length < perSpeaker) {
-                throw new Error(`Not enough unique items for speaker ${spk}`);
-            }
-
-            blockSample.push(...selected);
-        }
-
-        samples.push(blockSample);
-    }
-
-    return samples;
-}
-
-function sampleBalancedBlocks(trial_objects, blocks = 8, perSpeaker = 10) {
-    // group by ID
+function sampleBalancedBlocks(
+    trial_objects,
+    blocks = 8,
+    perSpeaker = 10
+) {
+    // ---- group trials by sentence ID ----
     const byId = {};
     for (const t of trial_objects) {
         if (!byId[t.id]) byId[t.id] = [];
         byId[t.id].push(t);
     }
 
-    const ids = Object.keys(byId);
+    const allIds = Object.keys(byId);
 
-    // total IDs must match blocks × perSpeaker
-    if (ids.length !== blocks * perSpeaker) {
-        throw new Error("ID count mismatch: need blocks * perSpeaker IDs.");
-    }
-
-    // --- Shuffle all IDs once ---
-    for (let i = ids.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [ids[i], ids[j]] = [ids[j], ids[i]];
-    }
-
-    // --- Partition IDs into 8 blocks of 10 IDs each ---
-    const idBlocks = [];
-    for (let b = 0; b < blocks; b++) {
-        idBlocks.push(ids.slice(b * perSpeaker, (b + 1) * perSpeaker));
-    }
-
-    // find speakers
+    // ---- identify speakers ----
     const speakers = [...new Set(trial_objects.map(o => o.speaker))];
+    if (speakers.length !== 4) {
+        throw new Error("Expected exactly 4 speakers.");
+    }
 
-    // --- Produce one sample per block ---
-    const samples = []; // array of 8 samples
+    // ---- sanity check: every sentence has all speakers ----
+    for (const id of allIds) {
+        if (byId[id].length !== speakers.length) {
+            throw new Error(`Sentence ${id} does not have all speakers.`);
+        }
+    }
+
+    const samples = [];
 
     for (let b = 0; b < blocks; b++) {
-        const block = idBlocks[b];
-        const sample = [];
-        const speakerCounts = {};
-
-        speakers.forEach(s => speakerCounts[s] = 0);
-
-        // For each ID in this block
-        for (const id of block) {
-            const group = [...byId[id]].sort(() => Math.random() - 0.5);
-
-            for (const item of group) {
-                const s = item.speaker;
-
-                if (speakerCounts[s] < perSpeaker) {
-                    sample.push(item);
-                    speakerCounts[s]++;
-                    break; // do not reuse ID
-                }
-            }
+        // ---- shuffle sentence IDs ----
+        const ids = [...allIds];
+        for (let i = ids.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [ids[i], ids[j]] = [ids[j], ids[i]];
         }
+
+        // ---- select 40 unique sentences for this block ----
+        const blockIds = ids.slice(0, perSpeaker * speakers.length);
+
+        // ---- shuffle again before speaker assignment ----
+        for (let i = blockIds.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [blockIds[i], blockIds[j]] = [blockIds[j], blockIds[i]];
+        }
+
+        const sample = [];
+
+        // ---- assign 10 unique sentences to each speaker ----
+        speakers.forEach((speaker, sIdx) => {
+            const speakerIds = blockIds.slice(
+                sIdx * perSpeaker,
+                (sIdx + 1) * perSpeaker
+            );
+
+            speakerIds.forEach(id => {
+                const clip = byId[id].find(t => t.speaker === speaker);
+                sample.push(clip);
+            });
+        });
+
+        // ---- safety checks ----
+        const idsInBlock = new Set(sample.map(t => t.id));
+        if (idsInBlock.size !== perSpeaker * speakers.length) {
+            throw new Error(`Sentence repeated in block ${b}`);
+        }
+
+        const speakerCounts = {};
+        sample.forEach(t => {
+            speakerCounts[t.speaker] = (speakerCounts[t.speaker] || 0) + 1;
+        });
+
+        console.log(`Block ${b}`, speakerCounts);
+
+        speakers.forEach(s => {
+            if (speakerCounts[s] !== perSpeaker) {
+                throw new Error(`Speaker imbalance in block ${b}`);
+            }
+        });
 
         samples.push(sample);
     }

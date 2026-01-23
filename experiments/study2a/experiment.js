@@ -8,6 +8,7 @@ const jsPsych = initJsPsych({
 });
 
 let timeline = []; //Empty timeline
+let blockOrderCounter = 0; //Counter for listening trial block indexing 
 
 //PRELOAD AUDIO//
 var preload_trial = {
@@ -358,9 +359,7 @@ const irb = {
             <p>The risks associated with this study are minimal. This judgment is based on a large body of experience with the same or similar procedures with people of similar ages, sex, origins, etc. Study data will be stored securely, in compliance with Stanford University standards, minimizing the risk of confidentiality breach. Your individual privacy will be maintained during the research and in all published and written data resulting from the study.</p>
             <h3>CONTACT INFORMATION</h3>
             <p>If you have any questions, concerns or complaints about this research study, its procedures, risks and benefits, you should contact the Protocol Director, Grace Brown, at (616) 498-8188. If you are not satisfied with how this study is being conducted, or if you have any concerns, complaints, or general questions about the research or your rights as a participant, please contact the Stanford Institutional Review Board (IRB) to speak to someone independent of the research team at (650) 723-2480 or toll free at 1-866-680-2906. You can also write to the Stanford IRB, Stanford University, 1705 El Camino Real, Palo Alto, CA 94306 USA.</p> 
-            <br>
             <p>Please save or print a copy of this page for your records</p>
-            <br>
             <p>If you agree to participate in this research, please click the 'Continue' button.</p>
         </div>
     `,
@@ -375,11 +374,16 @@ timeline.push(irb); //skip for pilot and testing
 
 let audio_check_instructions = {
     type: jsPsychHtmlButtonResponse,
-    stimulus: `<div class="gen_ins"><p>Before the experiment begins, we'd like to do a quick audio check. During the audio check, you'll hear two tones in a row, and then be asked to select which tone was quieter. Sometimes, the two tones will be the same.<br><br>If the first tone was quieter, press '1', and if the second tone was quieter, press '2'. If both tones seemed about the same, press '0'.<br><br>When you're ready, click 'Start Check' to begin the audio check.</p></div>`,
+    stimulus: `
+    <div class="gen_ins">
+    <p>Before the experiment begins, we'd like to do a quick audio check. During the audio check, you'll hear two tones in a row, and then be asked to select which tone was quieter. Sometimes, the two tones will be the same.<br><br>If the first tone was quieter, press '1', and if the second tone was quieter, press '2'. If both tones seemed about the same, press '0'.<br><br>When you're ready, click 'Start Check' to begin the audio check.</p>
+    </div>
+    `,
     choices: ['Start Check']
 }
 
 timeline.push(audio_check_instructions, audio_check_reset);
+
 for (let i = 0; i < audiocheck_trials_first.length; i++) {
     timeline.push(audiocheck_trials_first[i][0]);
     timeline.push(audiocheck_trials_first[i][1]);
@@ -398,11 +402,8 @@ timeline.push(audio_check_second_evaluate, audio_check_after_bad, audio_check_af
 const instructions = {
     type: jsPsychHtmlButtonResponse,
     stimulus: `
-    <div style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
-        <p>NOTE: THIS IS A SAMPLE STUDY WITH A REDUCED NUMBER OF TRIALS</p>
-        <br><br>
-        <p>In this study, you will listen to sentences produced by a variety of speakers. For each trial, you will hear one of these sentences. While the clip plays, you will be prompted to select one of two labels that best describes the speaker. To select a response, press either the ‘D’ or ‘K’ key on your keyboard. Please respond as quickly as possible. If you do not respond within 10 seconds, the experiment will advance automatically.</p>
-        <br><br>
+    <div class="gen_ins"; style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
+        <p>In this study, you will listen to sentences produced by a variety of speakers. For each trial, you will hear one of these sentences. While the clip is playing, you will be prompted to select one of two labels that best describes the speaker. To select a response, press either the ‘D’ or ‘K’ key on your keyboard. You may respond while the clip is playing. <strong>Please respond as quickly as possible.</strong> If you do not respond within 10 seconds, the experiment will advance automatically.</p>
         <p>If you understand the instructions and are ready to begin, click ‘Continue’.</p>
     </div>
     `,
@@ -412,11 +413,21 @@ const instructions = {
 
 timeline.push(instructions);
 
-//stim_list = DEMOsampleBalancedBlocks(trial_objects, 8, 2); //using DEMO SAMPLING - CHANGE LATER
 stim_list = sampleBalancedBlocks(trial_objects, 8, 10);
 
 //LISTENING TRIALS
 //BLOCK 1
+const block_1_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class=\"header\">BLOCK 1</div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">COMFORTABLE<br><br><b>Press 'D'</b></div><div class=\"option\">AWKWARD<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_1 = create_tv_array(stim_list[0]);
 const block_1 = {
     timeline: [
@@ -426,10 +437,33 @@ const block_1 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">MASCULINE<br><br><b>D</b></div><div class=\"option\">FEMININE<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">COMFORTABLE<br><br><b>Press 'D'</b></div><div class=\"option\">AWKWARD<br><br><b>Press 'K'</b></div></div>`,
+            on_start: function() {
+                blockTrialCounter++;
+            },
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // within-block trial # 
+                data.trial_in_block = blockTrialCounter;
+
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'comfortable',
+                    k: 'awkward'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -444,7 +478,35 @@ const block_1 = {
     randomize_order: true
 };
 
+const block_1_unit = {
+  timeline: [block_1_header, block_1],
+  data: {
+    block_id: 1,
+    dimension: 'comfortable-awkward'
+  },
+  on_timeline_start: function() {
+    blockOrderCounter++;
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+  }
+};
+
+//LISTENING TRIALS
 //BLOCK 2
+const block_2_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class="header">
+      BLOCK ${jsPsych.data.get().filter({block_start: true}).count() + 1}
+    </div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">MASCULINE<br><br><b>Press 'D'</b></div><div class=\"option\">FEMININE<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_2 = create_tv_array(stim_list[1]);
 const block_2 = {
     timeline: [
@@ -454,10 +516,33 @@ const block_2 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">INTELLIGENT<br><br><b>D</b></div><div class=\"option\">UNINTELLIGENT<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">MASCULINE<br><br><b>Press 'D'</b></div><div class=\"option\">FEMININE<br><br><b>Press 'K'</b></div></div>`,
+            on_start: function() {
+                blockTrialCounter++;
+            },
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // within-block trial # 
+                data.trial_in_block = blockTrialCounter;
+                
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'masculine',
+                    k: 'feminine'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -472,7 +557,35 @@ const block_2 = {
     randomize_order: true
 };
 
+const block_2_unit = {
+  timeline: [block_2_header, block_2],
+  data: {
+    block_id: 2,
+    dimension: 'masculine-feminine'
+  },
+  on_timeline_start: function() {
+    blockOrderCounter++;
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+  }
+};
+
+//LISTENING TRIALS
 //BLOCK 3
+const block_3_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class="header">
+      BLOCK ${jsPsych.data.get().filter({block_start: true}).count() + 1}
+    </div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>Press 'D'</b></div><div class=\"option\">DULL<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_3 = create_tv_array(stim_list[2]);
 const block_3 = {
     timeline: [
@@ -482,10 +595,33 @@ const block_3 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">NERVOUS<br><br><b>D</b></div><div class=\"option\">CALM<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>Press 'D'</b></div><div class=\"option\">DULL<br><br><b>Press 'K'</b></div></div>`,
+            on_start: function() {
+                blockTrialCounter++;
+            },
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // within-block trial # 
+                data.trial_in_block = blockTrialCounter;
+                
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'sharp',
+                    k: 'dull'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -500,7 +636,35 @@ const block_3 = {
     randomize_order: true
 };
 
+const block_3_unit = {
+  timeline: [block_3_header, block_3],
+  data: {
+    block_id: 3,
+    dimension: 'sharp-dull'
+  },
+  on_timeline_start: function() {
+    blockOrderCounter++;
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+  }
+};
+
+//LISTENING TRIALS
 //BLOCK 4
+const block_4_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class="header">
+      BLOCK ${jsPsych.data.get().filter({block_start: true}).count() + 1}
+    </div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">EMOTIVE<br><br><b>Press 'D'</b></div><div class=\"option\">ROBOTIC<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_4 = create_tv_array(stim_list[3]);
 const block_4 = {
     timeline: [
@@ -510,10 +674,33 @@ const block_4 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">SOCIALLY<br>GRACEFUL<br><br><b>D</b></div><div class=\"option\">SOCIALLY<br>AWKWARD<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">EMOTIVE<br><br><b>Press 'D'</b></div><div class=\"option\">ROBOTIC<br><br><b>Press 'K'</b></div></div>`,
+            on_start: function() {
+                blockTrialCounter++;
+            },
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // within-block trial # 
+                data.trial_in_block = blockTrialCounter;
+                
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'emotive',
+                    k: 'robotic'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -527,8 +714,46 @@ const block_4 = {
     timeline_variables: tv_array_4,
     randomize_order: true
 };
+const block_4_attention = {
+  type: jsPsychHtmlButtonResponse,
+  choices: ["masculine and feminine", "emotive and robotic", "smart and average"],
+  stimulus: "This is an attention check. Please select which labels you were using in the previous block.",
+  response_ends_trial: true,
+  trial_duration: 15000,
+  on_finish: function(data) {
+        data.correct = (data.response == 1); // mark correct or incorrect
+    } 
+};
 
+const block_4_unit = {
+  timeline: [block_4_header, block_4, block_4_attention],
+  data: {
+    block_id: 4,
+    dimension: 'emotive-robotic'
+  },
+  on_timeline_start: function() {
+    blockOrderCounter++;
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+  }
+};
+
+//LISTENING TRIALS
 //BLOCK 5
+const block_5_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class="header">
+      BLOCK ${jsPsych.data.get().filter({block_start: true}).count() + 1}
+    </div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">AWKWARD<br><br><b>Press 'D'</b></div><div class=\"option\">COMFORTABLE<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_5 = create_tv_array(stim_list[4]);
 const block_5 = {
     timeline: [
@@ -538,10 +763,33 @@ const block_5 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">FEMININE<br><br><b>D</b></div><div class=\"option\">MASCULINE<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">AWKWARD<br><br><b>Press 'D'</b></div><div class=\"option\">COMFORTABLE<br><br><b>Press 'K'</b></div></div>`,
+            on_start: function() {
+                blockTrialCounter++;
+            },
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // within-block trial # 
+                data.trial_in_block = blockTrialCounter;
+                
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'awkward',
+                    k: 'comfortable'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -556,7 +804,35 @@ const block_5 = {
     randomize_order: true
 };
 
+const block_5_unit = {
+  timeline: [block_5_header, block_5],
+  data: {
+    block_id: 5,
+    dimension: 'comfortable-awkward'
+  },
+  on_timeline_start: function() {
+    blockOrderCounter++;
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+  }
+};
+
+//LISTENING TRIALS
 //BLOCK 6
+const block_6_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class="header">
+      BLOCK ${jsPsych.data.get().filter({block_start: true}).count() + 1}
+    </div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">FEMININE<br><br><b>Press 'D'</b></div><div class=\"option\">MASCULINE<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_6 = create_tv_array(stim_list[5]);
 const block_6 = {
     timeline: [
@@ -566,10 +842,33 @@ const block_6 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">UNINTELLIGENT<br><br><b>D</b></div><div class=\"option\">INTELLIGENT<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">FEMININE<br><br><b>Press 'D'</b></div><div class=\"option\">MASCULINE<br><br><b>Press 'K'</b></div></div>`,
+            on_start: function() {
+                blockTrialCounter++;
+            },
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // within-block trial # 
+                data.trial_in_block = blockTrialCounter;
+                
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'feminine',
+                    k: 'masculine'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -583,8 +882,46 @@ const block_6 = {
     timeline_variables: tv_array_6,
     randomize_order: true
 };
+const block_6_attention = {
+  type: jsPsychHtmlButtonResponse,
+  choices: ["tall and short", "sharp and dull", "masculine and feminine"],
+  stimulus: "This is an attention check. Please select which labels you were using in the previous block.",
+  response_ends_trial: true,
+  trial_duration: 15000,
+  on_finish: function(data) {
+        data.correct = (data.response == 2); // mark correct or incorrect
+    } 
+};
 
+const block_6_unit = {
+  timeline: [block_6_header, block_6, block_6_attention],
+  data: {
+    block_id: 6,
+    dimension: 'masculine-feminine'
+  },
+  on_timeline_start: function() {
+    blockOrderCounter++;
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+  }
+};
+
+//LISTENING TRIALS
 //BLOCK 7
+const block_7_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class="header">
+      BLOCK ${jsPsych.data.get().filter({block_start: true}).count() + 1}
+    </div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>Press 'D'</b></div><div class=\"option\">DULL<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_7 = create_tv_array(stim_list[6]);
 const block_7 = {
     timeline: [
@@ -594,10 +931,33 @@ const block_7 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">CALM<br><br><b>D</b></div><div class=\"option\">NERVOUS<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">DULL<br><br><b>Press 'D'</b></div><div class=\"option\">SHARP<br><br><b>Press 'K'</b></div></div>`,
+            on_start: function() {
+                blockTrialCounter++;
+            },
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
                 sentence_id: jsPsych.timelineVariable('id')
+            },
+            on_finish: function(data) {
+                // within-block trial # 
+                data.trial_in_block = blockTrialCounter;
+                
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'dull',
+                    k: 'sharp'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -612,7 +972,35 @@ const block_7 = {
     randomize_order: true
 };
 
+const block_7_unit = {
+  timeline: [block_7_header, block_7],
+  data: {
+    block_id: 7,
+    dimension: 'sharp-dull'
+  },
+  on_timeline_start: function() {
+    blockOrderCounter++;
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+  }
+};
+
+//LISTENING TRIALS
 //BLOCK 8
+const block_8_header = {
+  type: jsPsychHtmlKeyboardResponse,
+  choices: [""],
+  stimulus: `
+  <div class=\"header_container\"><div class="header">
+      BLOCK ${jsPsych.data.get().filter({block_start: true}).count() + 1}
+    </div></div>
+  `,
+  prompt: `<div class=\"option_container\"><div class=\"option\">ROBOTIC<br><br><b>Press 'D'</b></div><div class=\"option\">EMOTIVE<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
+};
+
 let tv_array_8 = create_tv_array(stim_list[7]);
 const block_8 = {
     timeline: [
@@ -622,10 +1010,33 @@ const block_8 = {
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
             trial_duration: 10000,
-            prompt: `<div class=\"option_container\"><div class=\"option\">SOCIALLY<br>AWKWARD<br><br><b>D</b></div><div class=\"option\">SOCIALLY<br>GRACEFUL<br><br><b>K</b></div></div>`,
+            prompt: `<div class=\"option_container\"><div class=\"option\">ROBOTIC<br><br><b>Press 'D'</b></div><div class=\"option\">EMOTIVE<br><br><b>Press 'K'</b></div></div>`,
+            on_start: function() {
+                blockTrialCounter++;
+            },
             data: {
                 spk: jsPsych.timelineVariable('speaker'),
-                sentence_id: jsPsych.timelineVariable('id')
+                sentence_id: jsPsych.timelineVariable('id'),
+            },
+            on_finish: function(data) {
+                // within-block trial # 
+                data.trial_in_block = blockTrialCounter;
+                
+                // previous speaker
+                const prev = jsPsych.data.get()
+                    .filter({ trial_type: 'audio-keyboard-response' })
+                    .last(2)
+                    .values()[0];
+
+                data.prev_spk = prev ? prev.spk : null;
+
+                // response mappings
+                const keymap = {
+                    d: 'robotic',
+                    k: 'emotive'
+                };
+
+                data.label = keymap[data.response] || null;
             }
         },
         {
@@ -640,7 +1051,36 @@ const block_8 = {
     randomize_order: true
 };
 
-timeline.push(block_1, block_2, block_3, block_4, block_5, block_6, block_7, block_8);
+const block_8_unit = {
+  timeline: [block_8_header, block_8],
+  data: {
+    block_id: 8,
+    dimension: 'emotive-robotic'
+  },
+  on_timeline_start: function() {
+    blockOrderCounter++;
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+  }
+};
+
+// RANDOMIZE BLOCK ORDER
+const block_units = [
+  block_1_unit,
+  block_2_unit,
+  block_3_unit,
+  block_4_unit,
+  block_5_unit,
+  block_6_unit,
+  block_7_unit,
+  block_8_unit
+];
+
+const shuffled_blocks = jsPsych.randomization.shuffle(block_units);
+
+// PUSH LISTENING TRIALS TO TIMELINE
+timeline.push(shuffled_blocks);
 
 //SURVEY INSTRUCTIONS
 const transition = {
@@ -773,15 +1213,6 @@ const save_data = {
 };
 
 timeline.push(save_data);
-
-//FOR PILOTING - END DEMO
-var end_demo = {
-  type: jsPsychHtmlKeyboardResponse,
-  stimulus: `<p>You've finished the demo! You can close the tab to end the experiment or refresh to run it again.</p>`,
-  choices: "NO_KEYS"
-};
-
-//timeline.push(end_demo);
 
 //THANKS// - CHANGE LINK
 var thanks = {

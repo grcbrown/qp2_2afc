@@ -9,7 +9,7 @@ function create_tv_array(json_object) {
         tv_array.push(obj)
     }
     return tv_array;
-}
+};
 
 
 function sampleBalancedBlocksOLD(trial_objects, blocks = 8, perSpeaker = 10) {

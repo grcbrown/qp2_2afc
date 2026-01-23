@@ -66,7 +66,7 @@ df.pilot$rt <- as.numeric(df.pilot$rt)
 df.pilot %>% 
   filter(label == "comfortable" | label == "awkward") %>% # select responses of interest
   ggplot(mapping = aes(x = talker, 
-                       y = response_ref,
+                       y = 1- response_ref,
                        fill = talker)) +
   stat_summary(fun = "mean",
                geom = "bar") + 
@@ -74,7 +74,7 @@ df.pilot %>%
                geom = "linerange") + 
   coord_cartesian(ylim = c(0,1)) +
   labs(x = "Talker",
-       y = "Mean Proportion 'Awkward'") + 
+       y = "Mean Proportion 'Comfortable'") + 
   scale_fill_manual(values = cbPalette,
                     name = "Talker")
 ```
@@ -616,7 +616,7 @@ df.pilot %>%
 ```{r}
 df.awkward <- filter(df.pilot, label == "comfortable" | label == "awkward")
 fit.awkward <- glm(formula = response_ref ~ 1 + talker,
-                   family = "binomial",
+                   family = "binomial", # bernouli 
                    data = df.awkward)
 summary(fit.awkward)
 
