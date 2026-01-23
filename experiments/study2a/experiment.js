@@ -423,7 +423,9 @@ const block_1_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
   stimulus: `
-  <div class=\"header_container\"><div class=\"header\">BLOCK 1</div></div>
+  <div class=\"header_container\"><div class="header">
+      BLOCK ${jsPsych.data.get().filter({block_start: true}).count() + 1}
+    </div></div>
   `,
   prompt: `<div class=\"option_container\"><div class=\"option\">COMFORTABLE<br><br><b>Press 'D'</b></div><div class=\"option\">AWKWARD<br><br><b>Press 'K'</b></div></div>`,
   response_ends_trial: false, 
@@ -1209,7 +1211,7 @@ const filename = `${p_id}.csv`;
 const save_data = {
   type: jsPsychPipe,
   action: "save",
-  experiment_id: "dQGC7jeRc33t", //UPDATE WITH NEW DATAPIPE STUFF
+  experiment_id: "scyarQVcaJIU", //UPDATE WITH NEW DATAPIPE STUFF
   filename: filename,
   data_string: ()=>jsPsych.data.get().csv()
 };
@@ -1220,7 +1222,7 @@ timeline.push(save_data);
 var thanks = {
   type: jsPsychHtmlKeyboardResponse,
   stimulus: `<p>You've finished the study. Thank you for your time!</p>
-    <p><a href="https://app.prolific.com/submissions/complete?cc=C1BQGMWP">Click here to return to Prolific and complete the study</a>.</p>`,
+    <p><a href="https://app.prolific.com/submissions/complete?cc=C1ASD33E">Click here to return to Prolific and complete the study</a>.</p>`,
   choices: "NO_KEYS"
 };
 
