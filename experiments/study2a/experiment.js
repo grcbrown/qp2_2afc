@@ -429,7 +429,15 @@ const block_1_header = {
   `,
   prompt: `<div class=\"option_container\"><div class=\"option\">COMFORTABLE<br><br><b>Press 'D'</b></div><div class=\"option\">AWKWARD<br><br><b>Press 'K'</b></div></div>`,
   response_ends_trial: false, 
-  trial_duration: 3000
+  trial_duration: 3000,
+  on_start: function () {
+    blockOrderCounter += 1;
+
+    // store it in the data so all later trials inherit it
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+}
 };
 
 let tv_array_1 = create_tv_array(stim_list[0]);
@@ -489,7 +497,6 @@ const block_1_unit = {
     dimension: 'comfortable-awkward'
   },
   on_timeline_start: function() {
-    blockOrderCounter++;
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
@@ -508,7 +515,15 @@ const block_2_header = {
   `,
   prompt: `<div class=\"option_container\"><div class=\"option\">MASCULINE<br><br><b>Press 'D'</b></div><div class=\"option\">FEMININE<br><br><b>Press 'K'</b></div></div>`,
   response_ends_trial: false, 
-  trial_duration: 3000
+  trial_duration: 3000,
+  on_start: function () {
+    blockOrderCounter += 1;
+
+    // store it in the data so all later trials inherit it
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+}
 };
 
 let tv_array_2 = create_tv_array(stim_list[1]);
@@ -568,7 +583,6 @@ const block_2_unit = {
     dimension: 'masculine-feminine'
   },
   on_timeline_start: function() {
-    blockOrderCounter++;
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
@@ -587,7 +601,15 @@ const block_3_header = {
   `,
   prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>Press 'D'</b></div><div class=\"option\">DULL<br><br><b>Press 'K'</b></div></div>`,
   response_ends_trial: false, 
-  trial_duration: 3000
+  trial_duration: 3000,
+  on_start: function () {
+    blockOrderCounter += 1;
+
+    // store it in the data so all later trials inherit it
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+}
 };
 
 let tv_array_3 = create_tv_array(stim_list[2]);
@@ -647,7 +669,6 @@ const block_3_unit = {
     dimension: 'sharp-dull'
   },
   on_timeline_start: function() {
-    blockOrderCounter++;
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
@@ -666,7 +687,15 @@ const block_4_header = {
   `,
   prompt: `<div class=\"option_container\"><div class=\"option\">EMOTIVE<br><br><b>Press 'D'</b></div><div class=\"option\">ROBOTIC<br><br><b>Press 'K'</b></div></div>`,
   response_ends_trial: false, 
-  trial_duration: 3000
+  trial_duration: 3000,
+  on_start: function () {
+    blockOrderCounter += 1;
+
+    // store it in the data so all later trials inherit it
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+}
 };
 
 let tv_array_4 = create_tv_array(stim_list[3]);
@@ -736,7 +765,6 @@ const block_4_unit = {
     dimension: 'emotive-robotic'
   },
   on_timeline_start: function() {
-    blockOrderCounter++;
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
@@ -755,7 +783,15 @@ const block_5_header = {
   `,
   prompt: `<div class=\"option_container\"><div class=\"option\">AWKWARD<br><br><b>Press 'D'</b></div><div class=\"option\">COMFORTABLE<br><br><b>Press 'K'</b></div></div>`,
   response_ends_trial: false, 
-  trial_duration: 3000
+  trial_duration: 3000,
+  on_start: function () {
+    blockOrderCounter += 1;
+
+    // store it in the data so all later trials inherit it
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+}
 };
 
 let tv_array_5 = create_tv_array(stim_list[4]);
@@ -815,7 +851,6 @@ const block_5_unit = {
     dimension: 'comfortable-awkward'
   },
   on_timeline_start: function() {
-    blockOrderCounter++;
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
@@ -834,7 +869,15 @@ const block_6_header = {
   `,
   prompt: `<div class=\"option_container\"><div class=\"option\">FEMININE<br><br><b>Press 'D'</b></div><div class=\"option\">MASCULINE<br><br><b>Press 'K'</b></div></div>`,
   response_ends_trial: false, 
-  trial_duration: 3000
+  trial_duration: 3000,
+  on_start: function () {
+    blockOrderCounter += 1;
+
+    // store it in the data so all later trials inherit it
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+}
 };
 
 let tv_array_6 = create_tv_array(stim_list[5]);
@@ -904,7 +947,6 @@ const block_6_unit = {
     dimension: 'masculine-feminine'
   },
   on_timeline_start: function() {
-    blockOrderCounter++;
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
@@ -923,7 +965,15 @@ const block_7_header = {
   `,
   prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>Press 'D'</b></div><div class=\"option\">DULL<br><br><b>Press 'K'</b></div></div>`,
   response_ends_trial: false, 
-  trial_duration: 3000
+  trial_duration: 3000,
+  on_start: function () {
+    blockOrderCounter += 1;
+
+    // store it in the data so all later trials inherit it
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+}
 };
 
 let tv_array_7 = create_tv_array(stim_list[6]);
@@ -983,7 +1033,6 @@ const block_7_unit = {
     dimension: 'sharp-dull'
   },
   on_timeline_start: function() {
-    blockOrderCounter++;
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
@@ -1002,7 +1051,15 @@ const block_8_header = {
   `,
   prompt: `<div class=\"option_container\"><div class=\"option\">ROBOTIC<br><br><b>Press 'D'</b></div><div class=\"option\">EMOTIVE<br><br><b>Press 'K'</b></div></div>`,
   response_ends_trial: false, 
-  trial_duration: 3000
+  trial_duration: 3000,
+  on_start: function () {
+    blockOrderCounter += 1;
+
+    // store it in the data so all later trials inherit it
+    jsPsych.data.addProperties({
+      block_order: blockOrderCounter
+    });
+}
 };
 
 let tv_array_8 = create_tv_array(stim_list[7]);
@@ -1062,7 +1119,6 @@ const block_8_unit = {
     dimension: 'emotive-robotic'
   },
   on_timeline_start: function() {
-    blockOrderCounter++;
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
