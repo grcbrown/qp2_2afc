@@ -1,0 +1,192 @@
+---
+title: "Power Analysis 2A"
+output: html_notebook
+---
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = T)
+library(lme4)
+library(simr)
+library(tidyverse)
+
+knitr::opts_knit$set(root.dir = "/Users/gracebrown/qp2_2afc")
+setwd("/Users/gracebrown/qp2_2afc")
+```
+
+# Define experiment 
+```{r}
+# Experiment structure
+dimensions <- c(
+  "sharp_dull",
+  "masc_fem",
+  "comfort_awk",
+  "emotive_robot"
+)
+
+n_talkers    <- 4
+n_sentences  <- 10
+blocks_per_dimension <- 2
+```
+
+# Effect sizes 
+```{r}
+# Baseline probability of choosing response X
+beta_0 <- qlogis(0.5)
+
+# Main effects
+beta_talker <- 0.2    # estimating for small effect size
+beta_prev   <- 0.2      
+
+# Interaction 
+beta_interaction <- 0.56  # OR ≈ 1.75
+
+# Trial-level fatigue / drift
+beta_trial <- -0.01
+
+# Random-effects structure
+sd_participant_intercept <- 0.8
+sd_participant_talker    <- 0.4
+sd_sentence              <- 0.5
+sd_block                 <- 0.3
+```
+
+# Generate Data
+```{r}
+make_design <- function(n_participants) {
+
+  dimensions <- c("sharp_dull", "masc_fem", "comfort_awk", "emotive_robot")
+
+  all_participants <- vector("list", n_participants)
+
+  for (p in seq_len(n_participants)) {
+
+    participant_id <- factor(p)
+    participant_trials <- list()
+
+    for (d in dimensions) {
+
+      # 2 blocks per dimension
+      for (b in 1:2) {
+
+        # Fully crossed: 20 sentences × 4 talkers
+        block_trials <- expand_grid(
+          sentence_id = factor(seq_len(20)),
+          talker = factor(seq_len(4))
+        )
+
+        # Randomize trial order within block
+        block_trials <- block_trials[sample(nrow(block_trials)), ]
+
+        block_trials$participant <- participant_id
+        block_trials$dimension   <- d
+        block_trials$block       <- factor(paste0(d, "_block", b))
+
+        participant_trials[[length(participant_trials) + 1]] <- block_trials
+      }
+    }
+
+    # Bind all blocks
+    participant_df <- bind_rows(participant_trials)
+
+    # Trial numbering
+    participant_df$trial_num <- seq_len(nrow(participant_df))
+
+    # Derived previous talker
+    participant_df$prev_talker <- dplyr::lag(participant_df$talker)
+
+    # First trial has no previous talker
+    participant_df$prev_talker[1] <- NA
+
+    all_participants[[p]] <- participant_df
+  }
+
+  bind_rows(all_participants)
+}
+```
+
+```{r}
+simulate_data_small <- function(n_participants) {
+
+  dat <- make_design(n_participants) %>%
+    filter(!is.na(prev_talker))
+
+  contrasts(dat$talker)      <- contr.sum(4)
+  contrasts(dat$prev_talker) <- contr.sum(4)
+
+  # Random effects
+  re_participant <- rnorm(n_participants, 0, sd_participant_intercept)
+  sentence_levels <- levels(dat$sentence_id)
+  re_sentence <- rnorm(length(sentence_levels), 0, sd_sentence)
+  names(re_sentence) <- sentence_levels
+  re_block       <- rnorm(length(unique(dat$block)), 0, sd_block)
+
+  names(re_participant) <- levels(dat$participant)
+  names(re_sentence)    <- levels(dat$sentence_id)
+  names(re_block)       <- levels(dat$block)
+
+  # Fixed-effect matrix (NO interaction)
+  X <- model.matrix(
+    ~ 0 + talker + prev_talker,
+    dat
+  )
+
+  beta <- rep(0, ncol(X))
+  names(beta) <- colnames(X)
+
+  beta[grep("^talker", names(beta))]      <- beta_talker
+  beta[grep("^prev_talker", names(beta))] <- beta_prev
+
+  linpred <- beta_0 +
+    beta_trial * scale(dat$trial_num)[,1] +
+    X %*% beta +
+    re_participant[dat$participant] +
+    re_sentence[dat$sentence_id] +
+    re_block[dat$block]
+
+  dat$response_x <- rbinom(nrow(dat), 1, plogis(linpred))
+
+  dat
+}
+```
+
+```{r}
+fit_model_small <- function(dat) {
+  glmer(
+    response_x ~ talker + prev_talker +
+      scale(trial_num) +
+      (1 | participant) +
+      (1 | sentence_id) +
+      (1 | block),
+    data = dat,
+    family = binomial,
+    control = glmerControl(optimizer = "bobyqa")
+  )
+}
+```
+
+# Test Model
+```{r}
+set.seed(123)
+
+dat <- simulate_data_small(n_participants = 50) %>%
+  filter(dimension == "sharp_dull")
+
+fit <- fit_model_small(dat)
+
+powerSim(
+  fit,
+  test = fixed("talker", method = "lr"),
+  nsim = 100
+)
+```
+
+```{r}
+power_curve <- powerCurve(
+  fit,
+  fixed("talker:prev_talker", "lr"),
+  along = "participant",
+  nsim = 100
+)
+
+plot(power_curve)
+```
+

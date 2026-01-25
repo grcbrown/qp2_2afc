@@ -405,7 +405,7 @@ const instructions = {
     stimulus: `
     <div class="gen_ins"; style="font-size: 16px; text-align: center; margin-top: 25px; margin-right: 100px; margin-left: 100px; margin-bottom: 25px;">
         <p>In this study, you will listen to sentences produced by a variety of speakers. For each trial, you will hear one of these sentences. While the clip is playing, you will be prompted to select one of two labels that best describes the speaker. To select a response, press either the ‘D’ or ‘K’ key on your keyboard. You may respond while the clip is playing.</p> 
-        <p><strong>Please respond as quickly as possible.</strong> If you do not respond within 10 seconds, the experiment will advance to the next trial automatically.</p>
+        <p><strong>Please respond as quickly as possible.</strong> If you do not respond within 7 seconds, the experiment will advance to the next trial automatically.</p>
         <p>If you understand the instructions and are ready to begin, click ‘Continue’.</p>
     </div>
     `,
@@ -448,7 +448,7 @@ const block_1 = {
             choices: ['d', 'k'],
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
-            trial_duration: 10000,
+            trial_duration: 7000,
             prompt: `<div class=\"option_container\"><div class=\"option\">COMFORTABLE<br><br><b>Press 'D'</b></div><div class=\"option\">AWKWARD<br><br><b>Press 'K'</b></div></div>`,
             on_start: function() {
                 blockTrialCounter++;
@@ -534,7 +534,7 @@ const block_2 = {
             choices: ['d', 'k'],
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
-            trial_duration: 10000,
+            trial_duration: 7000,
             prompt: `<div class=\"option_container\"><div class=\"option\">MASCULINE<br><br><b>Press 'D'</b></div><div class=\"option\">FEMININE<br><br><b>Press 'K'</b></div></div>`,
             on_start: function() {
                 blockTrialCounter++;
@@ -620,7 +620,7 @@ const block_3 = {
             choices: ['d', 'k'],
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
-            trial_duration: 10000,
+            trial_duration: 7000,
             prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>Press 'D'</b></div><div class=\"option\">DULL<br><br><b>Press 'K'</b></div></div>`,
             on_start: function() {
                 blockTrialCounter++;
@@ -706,7 +706,7 @@ const block_4 = {
             choices: ['d', 'k'],
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
-            trial_duration: 10000,
+            trial_duration: 7000,
             prompt: `<div class=\"option_container\"><div class=\"option\">EMOTIVE<br><br><b>Press 'D'</b></div><div class=\"option\">ROBOTIC<br><br><b>Press 'K'</b></div></div>`,
             on_start: function() {
                 blockTrialCounter++;
@@ -802,7 +802,7 @@ const block_5 = {
             choices: ['d', 'k'],
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
-            trial_duration: 10000,
+            trial_duration: 7000,
             prompt: `<div class=\"option_container\"><div class=\"option\">AWKWARD<br><br><b>Press 'D'</b></div><div class=\"option\">COMFORTABLE<br><br><b>Press 'K'</b></div></div>`,
             on_start: function() {
                 blockTrialCounter++;
@@ -888,7 +888,7 @@ const block_6 = {
             choices: ['d', 'k'],
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
-            trial_duration: 10000,
+            trial_duration: 7000,
             prompt: `<div class=\"option_container\"><div class=\"option\">FEMININE<br><br><b>Press 'D'</b></div><div class=\"option\">MASCULINE<br><br><b>Press 'K'</b></div></div>`,
             on_start: function() {
                 blockTrialCounter++;
@@ -984,7 +984,7 @@ const block_7 = {
             choices: ['d', 'k'],
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
-            trial_duration: 10000,
+            trial_duration: 7000,
             prompt: `<div class=\"option_container\"><div class=\"option\">DULL<br><br><b>Press 'D'</b></div><div class=\"option\">SHARP<br><br><b>Press 'K'</b></div></div>`,
             on_start: function() {
                 blockTrialCounter++;
@@ -1070,7 +1070,7 @@ const block_8 = {
             choices: ['d', 'k'],
             stimulus: jsPsych.timelineVariable('stimulus'),
             response_allowed_while_playing: true,
-            trial_duration: 10000,
+            trial_duration: 7000,
             prompt: `<div class=\"option_container\"><div class=\"option\">ROBOTIC<br><br><b>Press 'D'</b></div><div class=\"option\">EMOTIVE<br><br><b>Press 'K'</b></div></div>`,
             on_start: function() {
                 blockTrialCounter++;
