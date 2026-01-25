@@ -422,22 +422,24 @@ stim_list = sampleBalancedBlocks(trial_objects, 8, 10);
 const block_1_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
-  stimulus: `
-  <div class=\"header_container\"><div class="header">
-      BLOCK ${blockOrderCounter}
-    </div></div>
-  `,
-  prompt: `<div class=\"option_container\"><div class=\"option\">COMFORTABLE<br><br><b>Press 'D'</b></div><div class=\"option\">AWKWARD<br><br><b>Press 'K'</b></div></div>`,
-  response_ends_trial: false, 
-  trial_duration: 3000,
-  on_start: function () {
+  stimulus: function () {
+    // increment HERE
     blockOrderCounter += 1;
 
-    // store it in the data so all later trials inherit it
+    // store for all subsequent trials
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
-}
+
+    return `
+      <div class="header_container">
+        <div class="header">BLOCK ${blockOrderCounter}</div>
+      </div>
+    `;
+  },
+  prompt: `<div class=\"option_container\"><div class=\"option\">COMFORTABLE<br><br><b>Press 'D'</b></div><div class=\"option\">AWKWARD<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
 };
 
 let tv_array_1 = create_tv_array(stim_list[0]);
@@ -508,22 +510,24 @@ const block_1_unit = {
 const block_2_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
-  stimulus: `
-  <div class=\"header_container\"><div class="header">
-      BLOCK ${blockOrderCounter}
-    </div></div>
-  `,
-  prompt: `<div class=\"option_container\"><div class=\"option\">MASCULINE<br><br><b>Press 'D'</b></div><div class=\"option\">FEMININE<br><br><b>Press 'K'</b></div></div>`,
-  response_ends_trial: false, 
-  trial_duration: 3000,
-  on_start: function () {
+  stimulus: function () {
+    // increment HERE
     blockOrderCounter += 1;
 
-    // store it in the data so all later trials inherit it
+    // store for all subsequent trials
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
-}
+
+    return `
+      <div class="header_container">
+        <div class="header">BLOCK ${blockOrderCounter}</div>
+      </div>
+    `;
+  },
+  prompt: `<div class=\"option_container\"><div class=\"option\">MASCULINE<br><br><b>Press 'D'</b></div><div class=\"option\">FEMININE<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
 };
 
 let tv_array_2 = create_tv_array(stim_list[1]);
@@ -594,22 +598,24 @@ const block_2_unit = {
 const block_3_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
-  stimulus: `
-  <div class=\"header_container\"><div class="header">
-      BLOCK ${blockOrderCounter}
-    </div></div>
-  `,
-  prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>Press 'D'</b></div><div class=\"option\">DULL<br><br><b>Press 'K'</b></div></div>`,
-  response_ends_trial: false, 
-  trial_duration: 3000,
-  on_start: function () {
+  stimulus: function () {
+    // increment HERE
     blockOrderCounter += 1;
 
-    // store it in the data so all later trials inherit it
+    // store for all subsequent trials
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
-}
+
+    return `
+      <div class="header_container">
+        <div class="header">BLOCK ${blockOrderCounter}</div>
+      </div>
+    `;
+  },
+  prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>Press 'D'</b></div><div class=\"option\">DULL<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
 };
 
 let tv_array_3 = create_tv_array(stim_list[2]);
@@ -680,22 +686,24 @@ const block_3_unit = {
 const block_4_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
-  stimulus: `
-  <div class=\"header_container\"><div class="header">
-      BLOCK ${blockOrderCounter}
-    </div></div>
-  `,
-  prompt: `<div class=\"option_container\"><div class=\"option\">EMOTIVE<br><br><b>Press 'D'</b></div><div class=\"option\">ROBOTIC<br><br><b>Press 'K'</b></div></div>`,
-  response_ends_trial: false, 
-  trial_duration: 3000,
-  on_start: function () {
+  stimulus: function () {
+    // increment HERE
     blockOrderCounter += 1;
 
-    // store it in the data so all later trials inherit it
+    // store for all subsequent trials
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
-}
+
+    return `
+      <div class="header_container">
+        <div class="header">BLOCK ${blockOrderCounter}</div>
+      </div>
+    `;
+  },
+  prompt: `<div class=\"option_container\"><div class=\"option\">EMOTIVE<br><br><b>Press 'D'</b></div><div class=\"option\">ROBOTIC<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
 };
 
 let tv_array_4 = create_tv_array(stim_list[3]);
@@ -776,22 +784,24 @@ const block_4_unit = {
 const block_5_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
-  stimulus: `
-  <div class=\"header_container\"><div class="header">
-      BLOCK ${blockOrderCounter}
-    </div></div>
-  `,
-  prompt: `<div class=\"option_container\"><div class=\"option\">AWKWARD<br><br><b>Press 'D'</b></div><div class=\"option\">COMFORTABLE<br><br><b>Press 'K'</b></div></div>`,
-  response_ends_trial: false, 
-  trial_duration: 3000,
-  on_start: function () {
+  stimulus: function () {
+    // increment HERE
     blockOrderCounter += 1;
 
-    // store it in the data so all later trials inherit it
+    // store for all subsequent trials
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
-}
+
+    return `
+      <div class="header_container">
+        <div class="header">BLOCK ${blockOrderCounter}</div>
+      </div>
+    `;
+  },
+  prompt: `<div class=\"option_container\"><div class=\"option\">AWKWARD<br><br><b>Press 'D'</b></div><div class=\"option\">COMFORTABLE<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
 };
 
 let tv_array_5 = create_tv_array(stim_list[4]);
@@ -862,22 +872,24 @@ const block_5_unit = {
 const block_6_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
-  stimulus: `
-  <div class=\"header_container\"><div class="header">
-      BLOCK ${blockOrderCounter}
-    </div></div>
-  `,
-  prompt: `<div class=\"option_container\"><div class=\"option\">FEMININE<br><br><b>Press 'D'</b></div><div class=\"option\">MASCULINE<br><br><b>Press 'K'</b></div></div>`,
-  response_ends_trial: false, 
-  trial_duration: 3000,
-  on_start: function () {
+  stimulus: function () {
+    // increment HERE
     blockOrderCounter += 1;
 
-    // store it in the data so all later trials inherit it
+    // store for all subsequent trials
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
-}
+
+    return `
+      <div class="header_container">
+        <div class="header">BLOCK ${blockOrderCounter}</div>
+      </div>
+    `;
+  },
+  prompt: `<div class=\"option_container\"><div class=\"option\">FEMININE<br><br><b>Press 'D'</b></div><div class=\"option\">MASCULINE<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
 };
 
 let tv_array_6 = create_tv_array(stim_list[5]);
@@ -958,22 +970,24 @@ const block_6_unit = {
 const block_7_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
-  stimulus: `
-  <div class=\"header_container\"><div class="header">
-      BLOCK ${blockOrderCounter}
-    </div></div>
-  `,
-  prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>Press 'D'</b></div><div class=\"option\">DULL<br><br><b>Press 'K'</b></div></div>`,
-  response_ends_trial: false, 
-  trial_duration: 3000,
-  on_start: function () {
+  stimulus: function () {
+    // increment HERE
     blockOrderCounter += 1;
 
-    // store it in the data so all later trials inherit it
+    // store for all subsequent trials
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
-}
+
+    return `
+      <div class="header_container">
+        <div class="header">BLOCK ${blockOrderCounter}</div>
+      </div>
+    `;
+  },
+  prompt: `<div class=\"option_container\"><div class=\"option\">SHARP<br><br><b>Press 'D'</b></div><div class=\"option\">DULL<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
 };
 
 let tv_array_7 = create_tv_array(stim_list[6]);
@@ -1044,22 +1058,24 @@ const block_7_unit = {
 const block_8_header = {
   type: jsPsychHtmlKeyboardResponse,
   choices: [""],
-  stimulus: `
-  <div class=\"header_container\"><div class="header">
-      BLOCK ${blockOrderCounter}
-    </div></div>
-  `,
-  prompt: `<div class=\"option_container\"><div class=\"option\">ROBOTIC<br><br><b>Press 'D'</b></div><div class=\"option\">EMOTIVE<br><br><b>Press 'K'</b></div></div>`,
-  response_ends_trial: false, 
-  trial_duration: 3000,
-  on_start: function () {
+  stimulus: function () {
+    // increment HERE
     blockOrderCounter += 1;
 
-    // store it in the data so all later trials inherit it
+    // store for all subsequent trials
     jsPsych.data.addProperties({
       block_order: blockOrderCounter
     });
-}
+
+    return `
+      <div class="header_container">
+        <div class="header">BLOCK ${blockOrderCounter}</div>
+      </div>
+    `;
+  },
+  prompt: `<div class=\"option_container\"><div class=\"option\">ROBOTIC<br><br><b>Press 'D'</b></div><div class=\"option\">EMOTIVE<br><br><b>Press 'K'</b></div></div>`,
+  response_ends_trial: false, 
+  trial_duration: 3000
 };
 
 let tv_array_8 = create_tv_array(stim_list[7]);
