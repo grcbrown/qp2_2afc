@@ -1283,7 +1283,7 @@ const filename = `${p_id}.csv`;
 const save_data = {
   type: jsPsychPipe,
   action: "save",
-  experiment_id: "scyarQVcaJIU", //UPDATE WITH NEW DATAPIPE STUFF
+  experiment_id: "scyarQVcaJIU", 
   filename: filename,
   data_string: ()=>jsPsych.data.get().csv()
 };
@@ -1294,6 +1294,7 @@ timeline.push(save_data);
 var thanks = {
   type: jsPsychHtmlKeyboardResponse,
   stimulus: `<p>You've finished the study. Thank you for your time!</p>
+    <br> 
     <p><a href="https://app.prolific.com/submissions/complete?cc=C1ASD33E">Click here to return to Prolific and complete the study</a>.</p>`,
   choices: "NO_KEYS"
 };
