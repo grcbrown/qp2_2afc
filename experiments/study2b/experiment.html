@@ -21,9 +21,18 @@
         <!-- DataPipe -->
         <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
 
+        <!-- Global Vars-->
+        <script> 
+           // some global variables
+          let wrong_phase = 0;
+          let correct_quiet = 0;
+          let pass = false;
+        </script>
+        
         <!-- Tell the file to run some .js files -->
         <script src="trials.js"></script>
         <script src="util.js"></script>
+        <script src="audiocheck.js"></script>
         <script src="experiment.js"></script>
 
         <!-- link the CSS file -->

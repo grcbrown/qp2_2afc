@@ -667,8 +667,10 @@ summary(fit.nervous.rt)
 ### sharp / dull
 ```{r}
 df.sharp <- filter(df.pilot, label == "sharp" | label == "dull")
-fit.sharp <- glm(formula = response_ref ~ 1 + talker,
-                   family = "binomial",
+fit.sharp <- glmer(formula = response_ref ~ 1 + talker + 
+                       (1 + talker | subject_id) +
+                       (1 | sentence_id),
+                 family = "binomial",
                    data = df.sharp)
 summary(fit.sharp)
 
@@ -694,3 +696,19 @@ emmeans(fit.masculine,
   pluck("contrasts") %>%
   summary()
 ```
+# attempt at power calculation 
+```{r}
+library(simr)
+powerSim(
+  fit.sharp,
+  test = fixed("talker", method = "lr"),
+  nsim = 100
+)
+
+powerSim(
+  fit.emotive,
+  test = fixed("talker", method = "lr"),
+  nsim = 100
+)
+```
+

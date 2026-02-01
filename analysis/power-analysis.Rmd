@@ -33,8 +33,8 @@ blocks_per_dimension <- 2
 beta_0 <- qlogis(0.5)
 
 # Main effects
-beta_talker <- 0.2    # estimating for small effect size
-beta_prev   <- 0.2      
+beta_talker <- 0.4    # estimating for medium effect size, given pilot data
+beta_prev   <- 0.4      
 
 # Interaction 
 beta_interaction <- 0.56  # OR ≈ 1.75
@@ -91,10 +91,10 @@ make_design <- function(n_participants) {
     participant_df$trial_num <- seq_len(nrow(participant_df))
 
     # Derived previous talker
-    participant_df$prev_talker <- dplyr::lag(participant_df$talker)
+    #participant_df$prev_talker <- dplyr::lag(participant_df$talker)
 
     # First trial has no previous talker
-    participant_df$prev_talker[1] <- NA
+    #participant_df$prev_talker[1] <- NA
 
     all_participants[[p]] <- participant_df
   }
@@ -106,11 +106,10 @@ make_design <- function(n_participants) {
 ```{r}
 simulate_data_small <- function(n_participants) {
 
-  dat <- make_design(n_participants) %>%
-    filter(!is.na(prev_talker))
+  dat <- make_design(n_participants) 
 
   contrasts(dat$talker)      <- contr.sum(4)
-  contrasts(dat$prev_talker) <- contr.sum(4)
+  #contrasts(dat$prev_talker) <- contr.sum(4)
 
   # Random effects
   re_participant <- rnorm(n_participants, 0, sd_participant_intercept)
@@ -125,7 +124,8 @@ simulate_data_small <- function(n_participants) {
 
   # Fixed-effect matrix (NO interaction)
   X <- model.matrix(
-    ~ 0 + talker + prev_talker,
+    #~ 0 + talker + prev_talker,
+    ~ 0 + talker, 
     dat
   )
 
@@ -133,14 +133,14 @@ simulate_data_small <- function(n_participants) {
   names(beta) <- colnames(X)
 
   beta[grep("^talker", names(beta))]      <- beta_talker
-  beta[grep("^prev_talker", names(beta))] <- beta_prev
+  #beta[grep("^prev_talker", names(beta))] <- beta_prev
 
   linpred <- beta_0 +
     beta_trial * scale(dat$trial_num)[,1] +
     X %*% beta +
-    re_participant[dat$participant] +
-    re_sentence[dat$sentence_id] +
-    re_block[dat$block]
+    re_participant[dat$participant]#+
+    #re_sentence[dat$sentence_id] +
+    #re_block[dat$block]
 
   dat$response_x <- rbinom(nrow(dat), 1, plogis(linpred))
 
@@ -151,11 +151,8 @@ simulate_data_small <- function(n_participants) {
 ```{r}
 fit_model_small <- function(dat) {
   glmer(
-    response_x ~ talker + prev_talker +
-      scale(trial_num) +
-      (1 | participant) +
-      (1 | sentence_id) +
-      (1 | block),
+    response_x ~ talker +
+      (1 | participant),
     data = dat,
     family = binomial,
     control = glmerControl(optimizer = "bobyqa")
@@ -165,9 +162,9 @@ fit_model_small <- function(dat) {
 
 # Test Model
 ```{r}
-set.seed(123)
+set.seed(327)
 
-dat <- simulate_data_small(n_participants = 50) %>%
+dat <- simulate_data_small(n_participants = 300) %>%
   filter(dimension == "sharp_dull")
 
 fit <- fit_model_small(dat)
@@ -182,9 +179,9 @@ powerSim(
 ```{r}
 power_curve <- powerCurve(
   fit,
-  fixed("talker:prev_talker", "lr"),
+  fixed("talker", "lr"),
   along = "participant",
-  nsim = 100
+  nsim = 50
 )
 
 plot(power_curve)
