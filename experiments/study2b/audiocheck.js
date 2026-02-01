@@ -63,7 +63,7 @@ let audio_check_between = {
   `,
   choices: [' '],
   trial_duration: function () {
-    rreturn (!pass && audio_check_failures < 3) ? 1000000000 : 0;
+    return (!pass && audio_check_failures < 3) ? 1000000000 : 0;
   }
 };
 
