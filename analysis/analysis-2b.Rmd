@@ -1,0 +1,102 @@
+---
+title: "Analysis 2B"
+author: "Grace Brown"
+date: "2026-02-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(ggplot2)
+library(MuMIn)
+library(emmeans)
+library(patchwork)
+
+knitr::opts_knit$set(root.dir = "/Users/gracebrown/qp2_2afc")
+setwd("/Users/gracebrown/qp2_2afc")
+
+# color-blind-friendly palette
+cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+theme_set(theme_bw())
+```
+
+## Load Data
+```{r load data}
+## read messy datasets
+### 2a 
+df.trials2a <- read_csv("./data/trials2a.csv") 
+df.survey2a <- read_csv("./data/survey2a.csv")
+df.trials2a <- left_join(x=df.trials2a,y=df.survey2a,by="subject_id")
+### 2b 
+df.trials2b <- read_csv("./data/trials2b.csv")
+df.survey2b <- read_csv("./data/survey2b.csv")
+df.trials2b <- left_join(x=df.trials2b,y=df.survey2b,by="subject_id")
+
+## Exclusions by Attention Check
+### 2a
+df.exclude_attention2a <- df.trials2a %>%  
+  filter(trial_type == "html-button-response", correct == FALSE) %>%
+  distinct(subject_id)
+
+df.trials2a <- df.trials2a %>% 
+  anti_join(df.exclude_attention2a, by = "subject_id")
+
+### 2b 
+df.exclude_attention2b <- df.trials2b %>%  
+  filter(trial_type == "html-button-response", correct == FALSE) %>%
+  distinct(subject_id)
+
+df.trials2b <- df.trials2b %>% 
+  anti_join(df.exclude_attention2b, by = "subject_id")
+
+## Exclusions by Trial Completion 
+trial_num = 320 # number of listening trials 
+### 2a
+df.exclude_trial2a <- df.trials2a %>% 
+  filter(!is.na(rt), trial_type == "audio-keyboard-response") %>%
+  count(subject_id) %>% 
+  filter(n / trial_num < 0.85) %>% # subjects with < 85% completion rate excluded
+  distinct(subject_id)
+
+df.trials2a <- df.trials2a %>% 
+  anti_join(df.exclude_trial2a, by = "subject_id")
+
+### 2b
+df.exclude_trial2b <- df.trials2b %>% 
+  filter(!is.na(rt), trial_type == "audio-keyboard-response") %>%
+  count(subject_id) %>% 
+  filter(n / trial_num < 0.85) %>% # subjects with < 85% completion rate excluded
+  distinct(subject_id)
+
+df.trials2b <- df.trials2b %>% 
+  anti_join(df.exclude_trial2b, by = "subject_id")
+
+## Recode Variables
+### 2a
+df.trials2a$talker <- factor(df.trials2a$spk, 
+                          levels = c(752, 573, 672, 493),
+                          labels = c("F1", "F2", "F3", "F4"))
+df.trials2a$prev_talker <- factor(df.trials2a$prev_spk, 
+                          levels = c(752, 573, 672, 493),
+                          labels = c("F1", "F2", "F3", "F4"))
+df.trials2a$rt <- as.numeric(df.trials2a$rt)
+df.trials2a$trial_in_block_recode <- ((df.trials2a$trial_in_block - 1) %% 40) + 1
+df.trials2a$block_index <- ((df.trials2a$trial_in_block - 1) %/% 40) + 1
+
+### 2b
+df.trials2b$talker <- factor(df.trials2b$spk, 
+                          levels = c(752, 573, 955, 516),
+                          labels = c("F1", "F2", "M1", "M2"))
+df.trials2b$prev_talker <- factor(df.trials2b$prev_spk, 
+                          levels = c(752, 573, 955, 516),
+                          labels = c("F1", "F2", "M1", "M2"))
+df.trials2b$rt <- as.numeric(df.trials2b$rt)
+df.trials2b$trial_in_block_recode <- ((df.trials2b$trial_in_block - 1) %% 40) + 1
+df.trials2b$block_index <- ((df.trials2b$trial_in_block - 1) %/% 40) + 1
+
+## Join 2a + 2b
+df.joint <- rbind(df.trials2a, df.trials2b)
+```
