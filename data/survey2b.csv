@@ -1,0 +1,158 @@
+subject_id,understood,age,gender,race,ethnicity,education,language
+5e34325430e5263f0bebb32d,TRUE,71,male,white,USA,Graduated college,English
+67e97a22653a5c0aba16efe5,TRUE,25,Male,AfricanAmerican,BlackAmerican,Graduated college,English
+63dab0380b8791f9560fd329,TRUE,37,Male,White,White,Graduated high school,English
+66e392f395f540d8a723c193,TRUE,43,Male,White,Irish,Graduated college,English
+55d35447da14d7000e95318f,TRUE,38,Male,White,American/white,Graduated college,English
+6944279b6ce0185ccdba8208,TRUE,26,Male,Latino,Latino,Graduated college,English
+67a67d69cadaa10c63c83485,TRUE,25,male,white,American,Graduated college,English
+660c21b888db988a05a6afd2,TRUE,42,Male,White,American,Some college,English
+6713eeea64ca1fb59cbcbce4,FALSE,46,He/Him - Male,White,Caucasian,Graduated college,English
+5e3adfc595ff562fbdd130fa,TRUE,38,Male,Caucasian,Caucasian,Graduated high school,English
+67cf28a2280e7e75fbbacbff,TRUE,50,Male,White,White,Graduated college,English
+5addd5e8a7f2df000154665b,TRUE,38,Woman,Black American,American,Graduated college,English
+66d9fc2d2b46f520118ea65f,TRUE,36,Male,Black,African American,Hold a higher degree,English
+6643b96e963b9b0cf7d216f3,TRUE,36,female,white,caucasian,Graduated college,English
+669a34b9a8f5a340ccb22fc6,TRUE,37,male,black,American,Some college,English
+58effc65c31d4d00015aa5b9,TRUE,51,female,white,none,Graduated college,English
+616c1cc2510fe9022f6577f8,TRUE,56,Male,White,non-hispanic,Graduated college,English
+6238b95932e705108020765a,TRUE,32,Male,White,White,Graduated college,English
+666b59f95861737274e65238,TRUE,42,female,white,Italian-American,Graduated college,English
+6717b21c1e82990c9080d9bc,TRUE,41,Female,Black American,Black America,Graduated college,English
+697ce23c1829fe252ad03260,TRUE,39,Male,White,White,Hold a higher degree,English
+6333926e48c34a5d39353558,TRUE,46,male,White Caucasian,Caucasian,Some college,English
+5bc5cecbee6eb000013e6043,TRUE,43,Female,White,Caucasian,Graduated college,English
+6632c6dbcc00853220eef80a,TRUE,51,female,white,"white, non-Hispanic",Hold a higher degree,english
+63f78d9a7a3d118594efff74,TRUE,33,Male,White,Hispanic,Some college,English
+63ed1fa5c88ecae92bf0c920,TRUE,42,Male,Black,African American,Graduated high school,English
+647a791065c6c348a325ab54,TRUE,61,Female,White,Irish,Some college,English
+65ac586115940869d22935d5,TRUE,47,male,male,black,Some high school,English
+6571f52abf0c07aa1ca785e8,TRUE,None,Female,White/caucasian,European,Some college,English
+678bbb267cd2b3ce8d20084f,TRUE,40,female,White,Non hispanic white,Hold a higher degree,English
+67eff0475e43d9a5390ff55e,TRUE,25,Female,African American,Black,Hold a higher degree,English
+675f39b4f456470edbd376e1,TRUE,31,female,white,white,Hold a higher degree,English
+695faf9de502a74c91806ded,TRUE,27,Nonbinary,Black,African American,Graduated high school,English
+57334d427d01ed00098e8e69,TRUE,41,Male,South Asian,Pakistani,Graduated college,Punjabi
+678712caf70562b83286c6e3,TRUE,67,Female,White,No Hispanic,Graduated college,English
+6393762f53bfb428985673db,TRUE,72,male,white,caucasian,Graduated college,english
+6633a56b4295b8d6db0fc3c3,TRUE,32,Male,Asian,Japanese,Hold a higher degree,English
+6131ba00bd67d2702e9a3c8d,TRUE,28,female,caucasian/white,white,Graduated college,english
+6600a119385d8631c41cd795,TRUE,37,Male,Caucasian,Italian,Graduated college,English
+615b448018d466d70b62a819,TRUE,26,male,white,white,Graduated college,english
+678c89e7d72ecd785f475dfd,TRUE,44,Male,Black American,Black,Graduated high school,English
+675de3bd64119cef93edfc75,TRUE,46,Male,white,white,Graduated college,English
+5884593bd920ed0001fdccb4,TRUE,43,male,white,Caucasian,Graduated high school,english
+64403df6a907abab42be962a,TRUE,60,female,None,None,Some college,English
+66c0df877e3dd5e2c1966f18,TRUE,23,Female,White,White,Graduated high school,English
+67e8736fe61568ecdf259abe,TRUE,50,Female,Black,African American,other,English
+5e991aaac7bc1615ea5b3eb8,TRUE,67,female,caucasian,European White American,Some college,English
+671e55aeca0216c5762de35a,TRUE,51,Male,White,Non Hispanic,Graduated college,English
+5ec2feeb47c4471339d3b2ce,TRUE,63,female,white,American,Graduated college,English
+67aa9a444dc88e4137cd0a45,TRUE,52,Male,White,White,Hold a higher degree,English
+66f6dfde93de2c0d7eaf463f,TRUE,47,male,white,caucasian,Hold a higher degree,English
+67c1d6d98c8787be36609212,TRUE,56,female,whits,american,Some college,English
+5f85bcb11941de066ef7d941,TRUE,35,Male,White,White,Hold a higher degree,English
+571bdf806b0894001262df5b,TRUE,74,Female,Black,None,Graduated college,English
+63e5b536fe14fec39a9a9361,TRUE,66,female,white,non-hispanic white,Prefer not to answer,English
+55900dcffdf99b3f7aada3f5,TRUE,75,Male,White,Italian-Irish,Graduated college,English
+5e307edef5abed05e1736185,TRUE,43,Female,White,White,Graduated college,English
+67d727dbd653b68ee63e3d08,TRUE,63,Female,White,American,Hold a higher degree,English
+62b0774e79b59d3584aa5c76,TRUE,25,Male,White,White,Some college,English
+66d67aa08e6caa907b2bf04b,TRUE,48,male,white,white/ caucasian,Graduated college,english
+67478b43d90864464fd088bb,TRUE,41,Female,White,European American,Graduated college,English
+67d727f06086654c357b68e2,TRUE,55,Female,White,White,Hold a higher degree,English
+68c96774c5a755579634545f,TRUE,23,Female,White,English,Some college,English
+67cf0c70aa43b13b6168ecbf,TRUE,34,Female,White,White,Hold a higher degree,English
+60f6e261d3ae19349059a473,TRUE,43,Male,White,American,Graduated college,English
+5588e0b4fdf99b304ee56a0e,TRUE,42,woman,asian and white,asian-american,Graduated college,"english, japanese"
+671ab0904de8eb7273ae9d42,TRUE,55,Female,Black,Black -American,Some college,English
+663cc95d57f434efeddcb182,TRUE,37,Male,White,American,Graduated college,English
+697aa00e19e730824f4cb5f3,TRUE,36,Heterosexual Male,Asian,Filipino,Graduated college,English
+62a2605f0693e2c79bf88b43,TRUE,48,Male,White,German,Graduated college,English
+66293ded22cbde752a3bbee4,TRUE,58,Female,White,Non hispanic,Hold a higher degree,English
+60edb2213042be8b4c1363c2,TRUE,53,Male,White,Jewish,Some college,English
+67e069199f5b036960b0cc5f,TRUE,32,Female/Woman,White,European/Caucasian,Graduated college,English
+5dd0082b929d5d1039e78371,TRUE,30,Female,White,non-hispanic,Graduated college,English
+5e0b388b15ef4037cebdecc9,TRUE,53,male,white,white,Some college,english
+58b2338a898c2e0001a5ca56,TRUE,64,None,f,USA,Graduated college,English
+5ebdc5809a676b105238713c,TRUE,25,Female,White,White (European),Graduated college,English
+5a068d5b074b190001251791,TRUE,42,Male,White,American,None,English
+696e7f24e144cadb9d5e4cf8,TRUE,28,nonbinary,white,white,Graduated high school,english
+5d30790f326b0f0017a2a828,TRUE,30,Male,White,American,Some college,English
+606cf604adbb6982bb382881,TRUE,40,Male,White,White,Some high school,English
+680cf3759bbfca13d68e130a,TRUE,57,M,Caucasian,USA,Graduated college,English
+63d3f99eac52371a49e65825,TRUE,29,female,caucasian,caucasian,Graduated college,english
+5e8cf14c0bec230b335e060d,TRUE,50,Female,Caribbean/West Indian,Caribbean/West Indian,Graduated high school,English
+573348527d01ed000f8f1615,TRUE,37,female,white,"white, American",Graduated college,English
+695bf3c4191515bb9c81f777,TRUE,30,Female,White,Nonhispanic,Hold a higher degree,English
+62854bc2a3bb1ddef989b6b7,TRUE,35,Male,White,American,Graduated high school,English
+570d30d942a1db000fc4cf87,TRUE,63,Female,White,American,Graduated high school,English
+6959ac694f14786b0b9ae82f,TRUE,41,Male,Caucasian,Caucasian,Graduated college,English
+6571d671bd27124fc516adba,TRUE,50,female,white,hispanic,Some college,english
+5c01d3c509e9c70001500b10,TRUE,35,female,Bi racial,None,Graduated college,English
+55b9a9b0fdf99b6906d2aba4,TRUE,70,Male,white European,American non hispanic,Some college,English
+651b1eb597d19205a5069db5,TRUE,42,female,white,caucasian,Some college,English
+5d311667f6df9d00011af0e1,TRUE,44,f,asian,asian,Graduated college,english
+65c6bbe7f9428763522fa244,TRUE,32,female,black,American,Some college,english
+5ca3bd506c848000011d0afa,FALSE,48,male,white,amercan,Graduated college,english
+695fab7742f8b49103425c6b,TRUE,26,Cis female,White,Non Hispanic,Graduated college,English
+67e92dbd9199b830fbecdf2e,TRUE,28,Male,White,White,Graduated college,English
+657619485d6869976045a220,TRUE,50,Male,White,Caucasian,Some college,English
+63b0888e6716ff9bc2cda151,TRUE,54,Male,Mixed race,American and Asian,Graduated college,English
+568e7e33e3ef9e000da202a7,TRUE,60,Female,White,American,Some college,English
+697cdbdf5efb6b234117f3ca,TRUE,23,Female,White,White,Graduated high school,English
+66293a5710fb93854b181793,TRUE,43,FEMALE,WHITE,WHITE,Some college,ENGLISH
+67b71cbc30104a66109a2bbf,TRUE,57,Female,White,Caucasian,Hold a higher degree,English
+60ff26e2e30862fdb8531934,TRUE,33,female,white,american,Some college,english
+680d155019b77b986ff85126,TRUE,66,Female,white,white,Graduated high school,English
+6945b7f9c69fe2317b25e4a2,TRUE,30,Female,Black,Afro-Caribbean,Hold a higher degree,English
+69440f7e80a4386d25e90198,TRUE,38,female,white,white,Hold a higher degree,english
+5d0dca2cecd8f60017eaddb3,TRUE,39,Male,White,White,Some college,English
+672ce4b6444bb28ed1573e5a,TRUE,41,Male,Black / White,Black / white American,Graduated college,English
+641385c88f29eb3264283818,TRUE,60,male,caucasian,American,Hold a higher degree,English
+62713a003caa3feec5c6a0ba,TRUE,34,Male,White,White,Graduated high school,English
+67f80601e44359732a7f2af4,TRUE,64,Female,Black,African American,Hold a higher degree,English
+683667d92d0bfb2cf3f5c7a6,TRUE,26,Female,White,European American,Graduated college,"English, German"
+69435bc6da88ff735f1192fc,TRUE,53,male,white,None,Some college,english
+65fc9f54bf0a6174674f0851,TRUE,48,female,white,American,Some college,english
+67a8d4209cbe02ab001f208a,TRUE,44,Male,White,White,Hold a higher degree,English
+666545416b4645950f75ba15,TRUE,37,Woman,White,White American/Italian/Polish,Some college,English
+5a2f1f0f2937000001eae2b1,TRUE,32,Male,White,Norwegian American,Graduated high school,English
+5cb489ff0cd1ed0017465d19,TRUE,36,male,white,american,Graduated high school,English
+6332274d72eff2df47171a78,TRUE,51,Male,White,Non-hispanic,Some college,English
+663e26ccdbc470527165388b,TRUE,58,female,white,European,Graduated college,English
+65639bc09216e3f40fcd1d4b,TRUE,49,Woman,White,European/ American,Some college,English
+695fbf5f32df133a03cd128b,TRUE,25,Male,White,Caucasian,Graduated high school,English
+583ef6f5ad2f4300014b358d,TRUE,34,female,white/Caucasian,American white/caucasian,Graduated high school,english
+5e2d219d88448733af1fa129,TRUE,20,Male,White,Russian,Some college,None
+5d3695969749cc00165c222f,TRUE,30,Male,White,American,Some college,English
+67a507f52decb8dbaacc29e3,TRUE,36,Man,African American,Black American,Graduated college,English
+66bba69a028672278914afe8,TRUE,36,male,asian,vietnamese,Hold a higher degree,english
+695bd138312a5272042a8db4,TRUE,53,male,white,white,Graduated college,english
+663e3c2794eaff8e68392199,TRUE,34,Female,Asian,Chinese,Graduated college,English
+682cd328bd53185cbbb59840,TRUE,25,Woman,White,European,Graduated college,English
+5fa45d41eb5d570b4841254d,TRUE,54,Female,White,American,Some college,English
+696967a820034107da9a178c,TRUE,31,Male,Black,African American,Graduated college,English
+67df2438f087a74ea30f779b,TRUE,34,Female,White,White,Graduated college,English
+67d98fdc3119bc87d2012ac3,TRUE,41,Male,White,Not Hispanic or Latino,Graduated college,English
+63d42c21dc6f4d60e34cc337,TRUE,46,male,Mexican American,Hispanic,Graduated high school,"English, Spanish"
+666cd244c4e9f0b3a060c2c7,TRUE,50,female,white,European,Some college,English & German
+666e123eb6aff45cf5be575e,TRUE,32,Female,White,European - British,Graduated college,English (US and UK dialect)
+626aa30c05328c5519b86746,TRUE,54,Female,White,American,Some college,English
+66045663fbc92e11eb7e557c,TRUE,51,female,caucasian,white,Hold a higher degree,English
+672a56a48f56810ca01f305c,TRUE,39,Male,White,European,Graduated college,English
+66cd0cfabaa915947f4a62cd,TRUE,28,Male,Asian,Pakistani,Hold a higher degree,English
+61001fba09e641fd06b1127c,TRUE,31,female,white,european,Graduated college,english
+67d5eb0b8ec16cc847b4593a,FALSE,35,Female,White,White european,Hold a higher degree,English
+6604664cb53a76971c8a1dce,TRUE,51,male,asian,chinese,Graduated college,english
+6630ec1ebe18d48a3cecb54e,TRUE,34,Male,Asian/Pacific Islander,"Thai, Filipino",Graduated college,English
+5ea060b71ce81301340a6b64,TRUE,37,male,white,european,Graduated college,english
+633edc50cfae73d4a72ca889,TRUE,46,male,white caucasian,white caucasian,Graduated high school,english
+67842c60c9cba1e154a69bbd,TRUE,41,Male,African American,Not Hispanic,Graduated college,English
+672a799c5da8404d6f10fd61,TRUE,47,female,white,caucasian,Graduated college,English
+687412b8d619a222cdd0bec9,TRUE,64,Female,White,US,Hold a higher degree,English
+6662149979f662803eff17de,TRUE,37,Male,White,White,Graduated college,English
+66857cc20736230620552dbc,TRUE,55,female,white,Irish,Graduated college,English
+5591cd21fdf99b63126f6c60,TRUE,35,male,white,white,Graduated college,english
+5d4c78071b920f00198e8533,TRUE,56,female,white,American,Graduated high school,English
+5eac2cc56665cc23af76e945,TRUE,28,female,white,white,Graduated college,english

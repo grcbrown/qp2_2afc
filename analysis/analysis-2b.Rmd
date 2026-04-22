@@ -14,26 +14,35 @@ library(ggplot2)
 library(MuMIn)
 library(emmeans)
 library(patchwork)
+library(broom)
 
 knitr::opts_knit$set(root.dir = "/Users/gracebrown/qp2_2afc")
 setwd("/Users/gracebrown/qp2_2afc")
 
 # color-blind-friendly palette
-cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cbPalette <- c("#E69F00", "#CC79A7", "#0072B2", "#D55E00", "#009E73", "#F0E442", "#56B4E9")
+cbPalette2 <- c("#E69F00", "#CC79A7", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#56B4E9")
 theme_set(theme_bw())
 ```
 
 ## Load Data
 ```{r load data}
 ## read messy datasets
+### duration of clips
+df.time2a <- read_csv("./data/durationlog2a.csv") 
+df.time2a <- df.time2a %>% mutate(stimulus = paste0("audio/", filename))
+df.time2b <- read_csv("./data/durationlog2b.csv") 
+df.time2b <- df.time2b %>% mutate(stimulus = paste0("audio/", filename))
 ### 2a 
 df.trials2a <- read_csv("./data/trials2a.csv") 
 df.survey2a <- read_csv("./data/survey2a.csv")
 df.trials2a <- left_join(x=df.trials2a,y=df.survey2a,by="subject_id")
+df.trials2a <- left_join(x=df.trials2a, y=df.time2a, by="stimulus")
 ### 2b 
 df.trials2b <- read_csv("./data/trials2b.csv")
 df.survey2b <- read_csv("./data/survey2b.csv")
 df.trials2b <- left_join(x=df.trials2b,y=df.survey2b,by="subject_id")
+df.trials2b <- left_join(x=df.trials2b, y=df.time2b, by="stimulus")
 
 ## Exclusions by Attention Check
 ### 2a
@@ -78,25 +87,2921 @@ df.trials2b <- df.trials2b %>%
 ### 2a
 df.trials2a$talker <- factor(df.trials2a$spk, 
                           levels = c(752, 573, 672, 493),
-                          labels = c("F1", "F2", "F3", "F4"))
+                          labels = c("1F", "2F", "3F", "4F"))
 df.trials2a$prev_talker <- factor(df.trials2a$prev_spk, 
                           levels = c(752, 573, 672, 493),
-                          labels = c("F1", "F2", "F3", "F4"))
+                          labels = c("1F", "2F", "3F", "4F"))
 df.trials2a$rt <- as.numeric(df.trials2a$rt)
+df.trials2a$log_rt <- log(df.trials2a$rt)
+df.trials2a$log_rt[is.infinite(df.trials2a$log_rt)] <- NA
+df.trials2a$sentence_id <- as.factor(df.trials2a$sentence_id)
 df.trials2a$trial_in_block_recode <- ((df.trials2a$trial_in_block - 1) %% 40) + 1
 df.trials2a$block_index <- ((df.trials2a$trial_in_block - 1) %/% 40) + 1
+df.trials2a <- df.trials2a %>%
+  group_by(subject_id, dimension) %>%
+  filter(!is.na(talker)) %>%
+  mutate(
+    block_rel = ifelse(block_index == min(block_index), "first", "second")
+  ) %>%
+  ungroup()
 
 ### 2b
 df.trials2b$talker <- factor(df.trials2b$spk, 
                           levels = c(752, 573, 955, 516),
-                          labels = c("F1", "F2", "M1", "M2"))
+                          labels = c("1F", "2F", "1M", "2M"))
 df.trials2b$prev_talker <- factor(df.trials2b$prev_spk, 
                           levels = c(752, 573, 955, 516),
-                          labels = c("F1", "F2", "M1", "M2"))
+                          labels = c("1F", "2F", "1M", "2M"))
 df.trials2b$rt <- as.numeric(df.trials2b$rt)
+df.trials2b$log_rt <- log(df.trials2b$rt)
+df.trials2b$log_rt[is.infinite(df.trials2b$log_rt)] <- NA
+df.trials2b$sentence_id <- as.factor(df.trials2b$sentence_id)
 df.trials2b$trial_in_block_recode <- ((df.trials2b$trial_in_block - 1) %% 40) + 1
 df.trials2b$block_index <- ((df.trials2b$trial_in_block - 1) %/% 40) + 1
+df.trials2b <- df.trials2b %>%
+  group_by(subject_id, dimension) %>%
+  filter(!is.na(talker)) %>%
+  mutate(
+    block_rel = ifelse(block_index == min(block_index), "first", "second")
+  ) %>%
+  ungroup()
 
 ## Join 2a + 2b
 df.joint <- rbind(df.trials2a, df.trials2b)
+df.joint$study <- factor(df.joint$study_id,
+                         levels = c("6973d7039d47152b688034aa", "697ef2a0649c9d3efa7747cf"),
+                         labels = c("Same Gender", "Mixed Gender"))
 ```
+## RT Pre-Processing
+```{r}
+## criteria = filter out trials with RT > mean + 2 sd (across both conditions)
+#rt.criteria <- df.joint %>% 
+#  filter(trial_type == "audio-keyboard-response") %>%
+#  summarise(mean = mean(rt, na.rm = T),
+#            sd = sd(rt, na.rm = T))
+
+#rt.cutoff <- rt.criteria$mean + 2 * rt.criteria$sd
+
+#tbl.rt <- df.joint %>% 
+#  filter(trial_type == "audio-keyboard-response") %>% 
+#  count(rt > 3966)
+
+#df.trials2a <- df.trials2a %>% filter(rt <= rt.cutoff)
+#df.trials2b <- df.trials2b %>% filter(rt <= rt.cutoff)
+#df.joint <- df.joint %>% filter(rt <= rt.cutoff)
+
+#tbl.rt <- df.joint %>% 
+#  filter(trial_type == "audio-keyboard-response") %>% 
+#  count(rt > 3966)
+
+df.trials2a  <- df.trials2a  %>%
+  group_by(subject_id) %>%
+  mutate(
+    participant_mean = mean(rt, na.rm = TRUE),
+    participant_sd = sd(rt, na.rm = TRUE),
+    lower_bound = participant_mean - 2.5 * participant_sd,
+    upper_bound = participant_mean + 2.5 * participant_sd
+  ) %>%
+  filter(rt >= lower_bound & rt <= upper_bound) %>%
+  ungroup()
+
+df.trials2b  <- df.trials2b  %>%
+  group_by(subject_id) %>%
+  mutate(
+    participant_mean = mean(rt, na.rm = TRUE),
+    participant_sd = sd(rt, na.rm = TRUE),
+    lower_bound = participant_mean - 2.5 * participant_sd,
+    upper_bound = participant_mean + 2.5 * participant_sd
+  ) %>%
+  filter(rt >= lower_bound & rt <= upper_bound) %>%
+  ungroup()
+
+tbl.rt <- df.joint %>% 
+  filter(trial_type == "audio-keyboard-response") %>% 
+  count()
+
+df.joint  <- df.joint  %>%
+  group_by(subject_id) %>%
+  mutate(
+    participant_mean = mean(rt, na.rm = TRUE),
+    participant_sd = sd(rt, na.rm = TRUE),
+    lower_bound = participant_mean - 2.5 * participant_sd,
+    upper_bound = participant_mean + 2.5 * participant_sd
+  ) %>%
+  filter(rt >= lower_bound & rt <= upper_bound) %>%
+  ungroup()
+
+tbl.rt2 <- df.joint %>% 
+  filter(trial_type == "audio-keyboard-response") %>% 
+  count()
+```
+
+
+## Define Response-Specific Datasets
+```{r}
+## 2B Only Datasets
+df.gender2b <- df.trials2b %>%
+  filter(label == "masculine" | label == "feminine") %>% # select responses of interest
+  filter(trial_type == "audio-keyboard-response") %>%
+  mutate(response_fem = ifelse(label == "feminine", 1, 0))
+
+df.ease2b <- df.trials2b %>%
+  filter(label == "comfortable" | label == "awkward") %>% # select responses of interest
+  filter(trial_type == "audio-keyboard-response") %>%
+  mutate(response_com = ifelse(label == "comfortable", 1, 0))
+
+df.sharp2b <- df.trials2b %>%
+  filter(label == "sharp" | label == "dull") %>% # select responses of interest
+  filter(trial_type == "audio-keyboard-response") %>%
+  mutate(response_sharp = ifelse(label == "sharp", 1, 0))
+
+df.express2b <- df.trials2b %>%
+  filter(label == "emotive" | label == "robotic") %>% # select responses of interest
+  filter(trial_type == "audio-keyboard-response") %>%
+  mutate(response_emo = ifelse(label == "emotive", 1, 0))
+
+## Joint Datasets
+df.gender <- df.joint %>%
+  filter(label == "masculine" | label == "feminine") %>% # select responses of interest
+  filter(trial_type == "audio-keyboard-response") %>%
+  mutate(response_fem = ifelse(label == "feminine", 1, 0))
+
+df.ease <- df.joint %>%
+  filter(label == "comfortable" | label == "awkward") %>% # select responses of interest
+  filter(trial_type == "audio-keyboard-response") %>%
+  mutate(response_com = ifelse(label == "comfortable", 1, 0))
+
+df.sharp <- df.joint %>%
+  filter(label == "sharp" | label == "dull") %>% # select responses of interest
+  filter(trial_type == "audio-keyboard-response") %>%
+  mutate(response_sharp = ifelse(label == "sharp", 1, 0))
+
+df.express <- df.joint %>%
+  filter(label == "emotive" | label == "robotic") %>% # select responses of interest
+  filter(trial_type == "audio-keyboard-response") %>%
+  mutate(response_emo = ifelse(label == "emotive", 1, 0))
+```
+
+## 2B Visualizations
+### tidying up 
+```{r}
+mean2a <- mean(df.time2a$milliseconddur)
+sd2a <- sd(df.time2a$milliseconddur)
+mean2b <- mean(df.time2b$milliseconddur)
+sd2b <- sd(df.time2b$milliseconddur)
+
+print(c("Mean Duration 2A", mean2a, "Duration St Dev 2A", sd2a))
+print(c("Mean Duration 2B", mean2b, "Duration St Dev 2B", sd2b))
+```
+
+### feminine / masculine
+#### response 
+```{r}
+plot.gender.resp <- df.gender2b %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = response_fem,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Feminine'",
+       title = "Mean Feminine/Masculine Responses by Talker") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/2b-plot-gender-resp.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-gender-resp.png",width=7,height=4)
+
+print(plot.gender.resp)
+```
+
+#### response time
+```{r}
+# central tendencies 
+plot.gender.rt.mean <- df.gender2b %>% 
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.35) + # dotted line
+  labs(x = "Talker",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Feminine/Masculine Response Times by Talker") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/2b-plot-gender-rt-mean.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-gender-rt-mean.png",width=7,height=4)
+
+print(plot.gender.rt.mean)
+  
+# trend within block 
+plot.gender.rt.trend <- df.gender2b %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  coord_cartesian(ylim = c(1500,2850)) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.35) + # dotted line
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Feminine/Masculine Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-gender-rt-trend.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-gender-rt-trend.png",width=7,height=4)
+
+print(plot.gender.rt.trend)
+
+# trend within block + indiv obs
+plot.gender.rt.trend.ind <- df.gender2b %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       group = talker,
+                       color = talker)) + 
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = T) +
+  #coord_cartesian(ylim = c(1600,2800)) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.5) + # dotted line
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Feminine/Masculine Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-gender-rt-trend-ind.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-gender-rt-trend-ind.png",width=7,height=4)
+
+print(plot.gender.rt.trend.ind)
+```
+
+### comfortable / awkward
+#### response 
+```{r}
+plot.ease.resp <- df.ease2b %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = response_com,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Comfortable'",
+       title = "Mean Comfortable/Awkward Responses by Talker") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/2b-plot-ease-resp.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-ease-resp.png",width=7,height=4)
+
+print(plot.ease.resp)
+```
+
+#### response time
+```{r}
+# central tendencies 
+plot.ease.rt.mean <-df.ease2b %>% 
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.35) + # dotted line
+  labs(x = "Talker",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Comfortable/Awkward Response Times by Talker") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/2b-plot-ease-rt-mean.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-ease-rt-mean.png",width=7,height=4)
+
+print(plot.ease.rt.mean)
+  
+# trend within block 
+plot.ease.rt.trend <- df.ease2b %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  coord_cartesian(ylim = c(1500,2850)) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.35) + # dotted line
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Comfortable/Awkward Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-ease-rt-trend.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-ease-rt-trend.png",width=7,height=4)
+
+print(plot.ease.rt.trend)
+
+# trend within block + indiv obs
+plot.ease.rt.trend.ind <- df.ease2b %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       group = talker,
+                       color = talker)) + 
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = T) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.5) + # dotted line
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Comfortable/Awkward Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-ease-rt-trend-ind.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-ease-rt-trend-ind.png",width=7,height=4)
+
+print(plot.ease.rt.trend.ind)
+```
+
+### sharp / dull
+#### response 
+```{r}
+plot.sharp.resp <- df.sharp2b %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = response_sharp,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Sharp'",
+       title = "Mean Sharp/Dull Responses by Talker") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/2b-plot-sharp-resp.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-sharp-resp.png",width=7,height=4)
+
+print(plot.sharp.resp)
+```
+
+#### response time
+```{r}
+# central tendencies 
+plot.sharp.rt.mean <- df.sharp2b %>% 
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.35) + # dotted line
+  labs(x = "Talker",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Sharp/Dull Response Times by Talker") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/2b-plot-sharp-rt-mean.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-sharp-rt-mean.png",width=7,height=4)
+
+print(plot.sharp.rt.mean)
+  
+# trend within block 
+plot.sharp.rt.trend <- df.sharp2b %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  coord_cartesian(ylim = c(1500,2850)) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.35) + # dotted line
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Sharp/Dull Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-sharp-rt-trend.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-sharp-rt-trend.png",width=7,height=4)
+
+print(plot.sharp.rt.trend)
+
+# trend within block + indiv obs
+plot.sharp.rt.trend.ind <- df.sharp2b %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       group = talker,
+                       color = talker)) + 
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = T) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.5) + # dotted line
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Sharp/Dull Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-sharp-rt-trend-ind.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-sharp-rt-trend-ind.png",width=7,height=4)
+
+print(plot.sharp.rt.trend.ind)
+```
+
+### emotive / robotic
+#### response 
+```{r}
+plot.express.resp <- df.express2b %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = response_emo,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Emotive'",
+       title = "Mean Emotive/Robotic Responses by Talker") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/2b-plot-express-resp.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-express-resp.png",width=7,height=4)
+
+print(plot.express.resp)
+```
+
+#### response time
+```{r}
+# central tendencies 
+plot.express.rt.mean <- df.express2b %>% 
+  ggplot(mapping = aes(x = talker, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,3000)) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.35) + # dotted line
+  labs(x = "Talker",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Emotive/Robotic Response Times by Talker") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/2b-plot-express-rt-mean.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-express-rt-mean.png",width=7,height=4)
+
+print(plot.express.rt.mean)
+  
+# trend within block 
+plot.express.rt.trend <- df.express2b %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  coord_cartesian(ylim = c(1500,2850)) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.35) + # dotted line
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Emotive/Robotic Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-express-rt-trend.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-express-rt-trend.png",width=7,height=4)
+
+print(plot.express.rt.trend)
+
+# trend within block + indiv obs
+plot.express.rt.trend.ind <- df.express2b %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       group = talker,
+                       color = talker)) + 
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = T) +
+  #geom_hline(yintercept = mean2b, linetype = "dotted", alpha = 0.5) + # dotted line
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Emotive/Robotic Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-express-rt-trend-ind.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-express-rt-trend-ind.png",width=7,height=4)
+
+print(plot.express.rt.trend.ind)
+```
+
+## 2B Visualizations - Grouped 
+### response
+```{r}
+(plot.gender.resp + plot.ease.resp) /
+(plot.sharp.resp + plot.express.resp) +
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "",
+    tag_suffix = "",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) +
+  plot_layout(guides = "collect") &
+  theme(
+    axis.title.x = element_text(size = 7),
+    axis.title.y = element_text(size = 6),
+    axis.text.x  = element_text(size = 7),
+    axis.text.y  = element_text(size = 6),
+    plot.title   = element_text(size = 9),
+    legend.position = "none")
+
+ggsave(file="./analysis/graphs/2b-plot-all-resp.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-all-resp.png",width=7,height=4)
+```
+
+### response time
+```{r}
+(plot.gender.rt.mean + plot.ease.rt.mean) /
+(plot.sharp.rt.mean + plot.express.rt.mean) +
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "",
+    tag_suffix = "",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) +
+  plot_layout(guides = "collect") &
+  theme(
+    axis.title.x = element_text(size = 7),
+    axis.title.y = element_text(size = 4),
+    axis.text.x  = element_text(size = 7),
+    axis.text.y  = element_text(size = 6),
+    plot.title   = element_text(size = 8),
+    legend.position = "none")
+
+ggsave(file="./analysis/graphs/2b-plot-all-rt-mean.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-all-rt-mean.png",width=7,height=4)
+```
+
+```{r}
+(plot.gender.rt.trend + plot.ease.rt.trend) /
+(plot.sharp.rt.trend + plot.express.rt.trend) +
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "",
+    tag_suffix = "",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) +
+  plot_layout(guides = "collect") &
+  theme(
+    axis.title.x = element_text(size = 7),
+    axis.title.y = element_text(size = 4),
+    axis.text.x  = element_text(size = 7),
+    axis.text.y  = element_text(size = 6),
+    plot.title   = element_text(size = 7),
+    legend.position = "bottom")
+
+ggsave(file="./analysis/graphs/2b-plot-all-rt-trend.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-all-rt-trend.png",width=7,height=4)
+```
+
+## Joint Visualizations
+### feminine / masculine
+#### response 
+```{r}
+plot.gender.resp.joint <- df.gender %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = study, 
+                       y = response_fem,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker Set",
+       y = "Mean Proportion 'Feminine'",
+       title = "Mean 1F, 2F Feminine/Masculine Responses by Talker Set") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-gender-resp.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-gender-resp.png",width=7,height=4)
+
+print(plot.gender.resp.joint)
+
+plot.gender.resp.joint.all <- df.gender %>%
+  ggplot(mapping = aes(x = study, 
+                       y = response_fem,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker Set",
+       y = "Mean Proportion 'Feminine'",
+       title = "Mean Feminine/Masculine Responses by Talker and Talker Set") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker")
+ggsave(file="./analysis/graphs/joint-plot-gender-resp-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-gender-resp-all.png",width=7,height=4)
+print(plot.gender.resp.joint.all)
+
+## gender joint best
+df.gender.ag <- df.gender %>%
+  group_by(study,subject_id,talker) %>% 
+  summarise(proportion = mean(response_fem,
+                              na.rm = T),
+            .groups = 'drop')
+
+plot.gender.resp.best <- df.gender.ag %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = proportion,
+                       fill = talker,
+                       color = talker)) +
+  geom_point(
+    position = position_jitter(width = 0.125, 
+                               height = 0.005,
+                               seed = 123),
+    alpha = 0.2, 
+    size = 2
+  ) +
+  geom_boxplot(
+    width = 0.17,
+    outlier.shape = NA,
+    position = position_nudge(x = 0.25),
+    alpha = 0.5,
+    notch = F, 
+    color = "black"
+  ) +
+  stat_summary(
+    fun.data = "mean_cl_boot",
+    geom = "pointrange",
+    color = "black",
+    size = 0.4,
+    position = position_nudge(x = 0.25)
+  ) +
+  coord_cartesian(ylim = c(0,1)) +
+  facet_grid(~study,
+             scales = "free_x")+
+  labs(x = "Talker",
+       y = "Mean Proportion 'Feminine'",
+       title = "Mean Feminine/Masculine Responses by Talker and Talker Set") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/joint-plot-gender-resp-best.pdf",width=6.5,height=5)
+ggsave(file="./analysis/graphs/joint-plot-gender-resp-best.png",width=6.5,height=5)
+
+print(plot.gender.resp.best)
+```
+
+#### response time
+```{r}
+# central tendencies 
+plot.gender.rt.mean.joint <- df.gender %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = study, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker Set",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean 1F, 2F Feminine/Masculine Response Times by Talker Set") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-gender-rt-mean.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-gender-rt-mean.png",width=7,height=4)
+
+print(plot.gender.rt.mean.joint)
+
+plot.gender.rt.mean.joint.all <- df.gender %>%
+  ggplot(mapping = aes(x = study, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker Set",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Feminine/Masculine Response Times by Talker and Talker Set") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-gender-rt-mean-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-gender-rt-mean-all.png",width=7,height=4)
+
+print(plot.gender.rt.mean.joint.all)
+  
+# trend within block 
+plot.gender.rt.trend.joint <- df.gender %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  filter(block_rel == "first") %>%
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth(alpha = 0.25) + 
+  coord_cartesian(ylim = c(1500,2250)) +
+  facet_grid(~study) +
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Feminine/Masculine Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-gender-rt-trend.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-gender-rt-trend.png",width=7,height=4)
+
+# trend within block - all
+plot.gender.rt.trend.joint.all <- df.gender %>%
+  filter(block_rel == "first") %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth(alpha = 0.25) + 
+  coord_cartesian(ylim = c(1500,2250)) +
+  facet_grid(~study) + 
+  #facet_grid(study~block_rel) + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Feminine/Masculine Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-gender-rt-trend-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-gender-rt-trend-all.png",width=7,height=4)
+
+print(plot.gender.rt.trend.joint.all)
+
+# trend within block + indiv obs
+plot.gender.rt.trend.ind.joint <- df.gender %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       group = talker,
+                       color = talker)) + 
+  #geom_point(alpha = 0.1) + 
+  geom_smooth(se = T) +
+  coord_cartesian(ylim = c(1500,2250)) +
+  facet_grid(~study) + 
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Feminine/Masculine Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-gender-rt-trend-ind.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-gender-rt-trend-ind.png",width=7,height=4)
+
+print(plot.gender.rt.trend.ind.joint)
+```
+
+### comfortable / awkward
+#### response 
+```{r}
+plot.ease.resp.joint <- df.ease %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = study, 
+                       y = response_com,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker Set",
+       y = "Mean Proportion 'Comfortable'",
+       title = "Mean 1F, 2F Comfortable/Awkward Responses by Talker Set") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-ease-resp.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-ease-resp.png",width=7,height=4)
+
+print(plot.ease.resp.joint)
+
+plot.ease.resp.joint.all <- df.ease %>%
+  ggplot(mapping = aes(x = study, 
+                       y = response_com,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker Set",
+       y = "Mean Proportion 'Comfortable'",
+       title = "Mean Comfortable/Awkward Responses by Talker and Talker Set") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker")
+ggsave(file="./analysis/graphs/joint-plot-ease-resp-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-ease-resp-all.png",width=7,height=4)
+print(plot.ease.resp.joint.all)
+
+## ease joint best
+df.ease.ag <- df.ease %>%
+  group_by(study,subject_id,talker) %>% 
+  summarise(proportion = mean(response_com,
+                              na.rm = T),
+            .groups = 'drop')
+
+plot.ease.resp.best <- df.ease.ag %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = proportion,
+                       fill = talker,
+                       color = talker)) +
+  geom_point(
+    position = position_jitter(width = 0.125, 
+                               height = 0.005,
+                               seed = 123),
+    alpha = 0.2, 
+    size = 2
+  ) +
+  geom_boxplot(
+    width = 0.17,
+    outlier.shape = NA,
+    position = position_nudge(x = 0.25),
+    alpha = 0.5,
+    notch = F, 
+    color = "black"
+  ) +
+  stat_summary(
+    fun.data = "mean_cl_boot",
+    geom = "pointrange",
+    color = "black",
+    size = 0.4,
+    position = position_nudge(x = 0.25)
+  ) +
+  coord_cartesian(ylim = c(0,1)) +
+  facet_grid(~study,
+             scales = "free_x")+
+  labs(x = "Talker",
+       y = "Mean Proportion 'Comfortable'",
+       title = "Mean Comfortable/Awkward Responses by Study and Talker") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/joint-plot-ease-resp-best.pdf",width=6.5,height=5)
+ggsave(file="./analysis/graphs/joint-plot-ease-resp-best.png",width=6.5,height=5)
+
+print(plot.ease.resp.best)
+```
+
+#### response time
+```{r}
+# central tendencies 
+plot.ease.rt.mean.joint <- df.ease %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = study, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker Set",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean 1F, 2F Comfortable/Awkward Response Times by Talker Set") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-ease-rt-mean.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-ease-rt-mean.png",width=7,height=4)
+
+print(plot.ease.rt.mean.joint)
+
+plot.ease.rt.mean.joint.all <- df.ease %>%
+  ggplot(mapping = aes(x = study, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker Set",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Comfortable/Awkward Response Times by Talker and Talker Set") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-ease-rt-mean-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-ease-rt-mean-all.png",width=7,height=4)
+
+print(plot.ease.rt.mean.joint.all)
+  
+# trend within block 
+plot.ease.rt.trend.joint <- df.ease %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  #coord_cartesian(ylim = c(1600,2800)) +
+  facet_grid(~study) +
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Comfortable/Awkward Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-ease-rt-trend.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-ease-rt-trend.png",width=7,height=4)
+
+print(plot.ease.rt.trend.joint)
+
+# trend within block - all
+plot.ease.rt.trend.joint.all <- df.ease %>%
+  filter(block_rel == "first") %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth(alpha = 0.25) + 
+  coord_cartesian(ylim = c(1500,2850)) +
+  facet_grid(~study) +
+  #facet_grid(study~block_rel) +
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Comfortable/Awkward Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-ease-rt-trend-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-ease-rt-trend-all.png",width=7,height=4)
+
+print(plot.ease.rt.trend.joint.all)
+
+# trend within block + indiv obs
+plot.ease.rt.trend.ind.joint <- df.ease %>%
+  filter(talker == "1F" | talker == "2F") %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       group = talker,
+                       color = talker)) + 
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = T) +
+  facet_grid(~study) +
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Comfortable/Awkward Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-ease-rt-trend-ind.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-ease-rt-trend-ind.png",width=7,height=4)
+
+print(plot.ease.rt.trend.ind.joint)
+```
+
+### sharp / dull
+#### response 
+```{r}
+plot.sharp.resp.joint <- df.sharp %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = study, 
+                       y = response_sharp,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker Set",
+       y = "Mean Proportion 'Sharp'",
+       title = "Mean 1F, 2F Sharp/Dull Responses by Talker Set") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-sharp-resp.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-sharp-resp.png",width=7,height=4)
+
+print(plot.sharp.resp.joint)
+
+plot.sharp.resp.joint.all <- df.sharp %>%
+  ggplot(mapping = aes(x = study, 
+                       y = response_sharp,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker Set",
+       y = "Mean Proportion 'Sharp'",
+       title = "Mean Sharp/Dull Responses by Talker and Talker Set") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-sharp-resp-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-sharp-resp-all.png",width=7,height=4)
+
+print(plot.sharp.resp.joint.all)
+
+## sharp joint best
+df.sharp.ag <- df.sharp %>%
+  group_by(study,subject_id,talker) %>% 
+  summarise(proportion = mean(response_sharp,
+                              na.rm = T),
+            .groups = 'drop')
+
+plot.sharp.resp.best <- df.sharp.ag %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = proportion,
+                       fill = talker,
+                       color = talker)) +
+  geom_point(
+    position = position_jitter(width = 0.125, 
+                               height = 0.005,
+                               seed = 123),
+    alpha = 0.2, 
+    size = 2
+  ) +
+  geom_boxplot(
+    width = 0.17,
+    outlier.shape = NA,
+    position = position_nudge(x = 0.25),
+    alpha = 0.5,
+    notch = F, 
+    color = "black"
+  ) +
+  stat_summary(
+    fun.data = "mean_cl_boot",
+    geom = "pointrange",
+    color = "black",
+    size = 0.4,
+    position = position_nudge(x = 0.25)
+  ) +
+  coord_cartesian(ylim = c(0,1)) +
+  facet_grid(~study,
+             scales = "free_x")+
+  labs(x = "Talker",
+       y = "Mean Proportion 'Sharp'",
+       title = "Mean Sharp/Dull Responses by Study and Talker") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/joint-plot-sharp-resp-best.pdf",width=6.5,height=5)
+ggsave(file="./analysis/graphs/joint-plot-sharp-resp-best.png",width=6.5,height=5)
+
+print(plot.sharp.resp.best)
+```
+
+#### response time
+```{r}
+# central tendencies 
+plot.sharp.rt.mean.joint <- df.sharp %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = study, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker Set",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean 1F, 2F Sharp/Dull Response Times by Talker Set") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-sharp-rt-mean.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-sharp-rt-mean.png",width=7,height=4)
+
+print(plot.sharp.rt.mean.joint)
+
+plot.sharp.rt.mean.joint.all <- df.sharp %>%
+  ggplot(mapping = aes(x = study, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker Set",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Sharp/Dull Response Times by Talker and Talker Set") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-sharp-rt-mean-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-sharp-rt-mean-all.png",width=7,height=4)
+
+print(plot.sharp.rt.mean.joint.all)
+  
+# trend within block 
+plot.sharp.rt.trend.joint <- df.sharp %>%
+  filter(talker == "1F" | talker == "2F") %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  #coord_cartesian(ylim = c(1600,2800)) +
+  facet_grid(~study) +
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Sharp/Dull Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-sharp-rt-trend.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-sharp-rt-trend.png",width=7,height=4)
+
+print(plot.sharp.rt.trend.joint)
+
+# trend within block - all
+plot.sharp.rt.trend.joint.all <- df.sharp %>%
+  filter(block_rel == "first") %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth(alpha = 0.25) + 
+  coord_cartesian(ylim = c(1500,2850)) +
+  facet_grid(~study) +
+  #facet_grid(study~block_rel) +
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Sharp/Dull Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-sharp-rt-trend-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-sharp-rt-trend-all.png",width=7,height=4)
+
+print(plot.sharp.rt.trend.joint.all)
+
+# trend within block + indiv obs
+plot.sharp.rt.trend.ind.joint <- df.sharp %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       group = talker,
+                       color = talker)) + 
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = T) +
+  facet_grid(~study) +
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Sharp/Dull Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-sharp-rt-trend-ind.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-sharp-rt-trend-ind.png",width=7,height=4)
+
+print(plot.sharp.rt.trend.ind.joint)
+```
+
+### emotive / robotic
+#### response 
+```{r}
+plot.express.resp.joint <- df.express %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = study, 
+                       y = response_emo,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker Set",
+       y = "Mean Proportion 'Emotive'",
+       title = "Mean 1F, 2F Emotive/Robotic Responses by Talker Set") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-express-resp.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-express-resp.png",width=7,height=4)
+
+print(plot.express.resp.joint)
+
+plot.express.resp.joint.all <- df.express %>%
+  ggplot(mapping = aes(x = study, 
+                       y = response_emo,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker Set",
+       y = "Mean Proportion 'Emotive'",
+       title = "Mean Emotive/Robotic Responses by Talker and Talker Set") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-express-resp-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-express-resp-all.png",width=7,height=4)
+
+print(plot.express.resp.joint.all)
+
+## express joint best
+df.express.ag <- df.express %>%
+  group_by(study,subject_id,talker) %>% 
+  summarise(proportion = mean(response_emo,
+                              na.rm = T),
+            .groups = 'drop')
+
+plot.express.resp.best <- df.express.ag %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = proportion,
+                       fill = talker,
+                       color = talker)) +
+  geom_point(
+    position = position_jitter(width = 0.125, 
+                               height = 0.005,
+                               seed = 123),
+    alpha = 0.2, 
+    size = 2
+  ) +
+  geom_boxplot(
+    width = 0.17,
+    outlier.shape = NA,
+    position = position_nudge(x = 0.25),
+    alpha = 0.5,
+    notch = F, 
+    color = "black"
+  ) +
+  stat_summary(
+    fun.data = "mean_cl_boot",
+    geom = "pointrange",
+    color = "black",
+    size = 0.4,
+    position = position_nudge(x = 0.25)
+  ) +
+  coord_cartesian(ylim = c(0,1)) +
+  facet_grid(~study,
+             scales = "free_x")+
+  labs(x = "Talker",
+       y = "Mean Proportion 'Emotive'",
+       title = "Mean Emotive/Robotic Responses by Study and Talker") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker") + 
+  theme(legend.position = "none")
+
+ggsave(file="./analysis/graphs/joint-plot-express-resp-best.pdf",width=6.5,height=5)
+ggsave(file="./analysis/graphs/joint-plot-express-resp-best.png",width=6.5,height=5)
+
+print(plot.express.resp.best)
+```
+
+#### response time
+```{r}
+# central tendencies 
+plot.express.rt.mean.joint <- df.express %>%
+  filter(talker == "1F" | talker == "2F") %>% 
+  ggplot(mapping = aes(x = study, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker Set",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean 1F, 2F Emotive/Robotic Response Times by Talker Set") + 
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-express-rt-mean.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-express-rt-mean.png",width=7,height=4)
+
+print(plot.express.rt.mean.joint)
+
+plot.express.rt.mean.joint.all <- df.express %>%
+  ggplot(mapping = aes(x = study, 
+                       y = rt,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar",
+               position = position_dodge(width = .9)) + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange",
+               position = position_dodge(width = .9)) + 
+  coord_cartesian(ylim = c(0,3000)) +
+  labs(x = "Talker Set",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Emotive/Robotic Response Times by Talker and Talker Set") + 
+  scale_fill_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-express-rt-mean-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-express-rt-mean-all.png",width=7,height=4)
+
+print(plot.express.rt.mean.joint.all)
+  
+# trend within block 
+plot.express.rt.trend.joint <- df.express %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth() + 
+  #coord_cartesian(ylim = c(1600,2800)) +
+  facet_grid(~study) +
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Emotive/Robotic Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-express-rt-trend.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-express-rt-trend.png",width=7,height=4)
+
+print(plot.express.rt.trend.joint)
+
+# trend within block - all
+plot.express.rt.trend.joint.all <- df.express %>%
+  filter(block_rel == "first") %>%
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       color = talker)) + 
+  geom_smooth(alpha = 0.25) + 
+  coord_cartesian(ylim = c(1500,2850)) +
+  facet_grid(~study) +
+  #facet_grid(study~block_rel) +
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Emotive/Robotic Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-express-rt-trend-all.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-express-rt-trend-all.png",width=7,height=4)
+
+print(plot.express.rt.trend.joint.all)
+
+# trend within block + indiv obs
+plot.express.rt.trend.ind.joint <- df.express %>%
+  filter(talker == "1F" | talker == "2F") %>%
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = rt, 
+                       group = talker,
+                       color = talker)) + 
+  geom_point(alpha = 0.1) + 
+  geom_smooth(se = T) +
+  facet_grid(~study) +
+  labs(x = "Within-Block Trial #",
+       y = "Response Time from Stimulus Onset (ms)",
+       title = "Mean Emotive/Robotic Response Times by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-express-rt-trend-ind.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-express-rt-trend-ind.png",width=7,height=4)
+
+print(plot.express.rt.trend.ind.joint)
+```
+
+## Joint Visualizations - Grouped
+### response - 1F and 2F 
+```{r}
+(plot.gender.resp.joint + plot.ease.resp.joint) /
+(plot.sharp.resp.joint + plot.express.resp.joint) +
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "",
+    tag_suffix = "",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) +
+  plot_layout(guides = "collect") &
+  theme(
+    axis.title.x = element_text(size = 6),
+    axis.title.y = element_text(size = 6),
+    axis.text.x  = element_text(size = 6),
+    axis.text.y  = element_text(size = 5),
+    plot.title   = element_text(size = 8),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 6),
+    legend.position = "bottom")
+
+ggsave(file="./analysis/graphs/joint-plot-resp.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-resp.png",width=7,height=4)
+```
+
+### response - all talkers
+```{r}
+(plot.gender.resp.joint.all + plot.ease.resp.joint.all) /
+(plot.sharp.resp.joint.all + plot.express.resp.joint.all) +
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "",
+    tag_suffix = "",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) +
+  plot_layout(guides = "collect") &
+  theme(
+    axis.title.x = element_text(size = 6),
+    axis.title.y = element_text(size = 6),
+    axis.text.x  = element_text(size = 6),
+    axis.text.y  = element_text(size = 5),
+    plot.title   = element_text(size = 7),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 6),
+    legend.position = "bottom")
+
+ggsave(file="./analysis/graphs/joint-plot-all-resp.pdf",width=8,height=4)
+ggsave(file="./analysis/graphs/joint-plot-all-resp.png",width=8,height=4)
+```
+
+```{r}
+plot.gender.resp.best <- plot.gender.resp.best + labs(title = NULL)
+plot.ease.resp.best <- plot.ease.resp.best + labs(title = NULL)
+plot.sharp.resp.best <- plot.sharp.resp.best + labs(title = NULL)
+plot.express.resp.best <- plot.express.resp.best + labs(title = NULL)
+
+(plot.gender.resp.best + plot.ease.resp.best) /
+(plot.sharp.resp.best + plot.express.resp.best) +
+  plot_annotation(
+    "Mean Responses by Response Pair, Talker, and Talker Set",
+    tag_levels = "a",
+    tag_prefix = "",
+    tag_suffix = "",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) +
+  plot_layout(guides = "collect") &
+  theme(
+    axis.title.x = element_text(size = 9),
+    axis.title.y = element_text(size = 9),
+    axis.text.x  = element_text(size = 7),
+    axis.text.y  = element_text(size = 7),
+    plot.title   = element_text(size = 14),
+    legend.position = "none")
+
+ggsave(file="./analysis/graphs/joint-plot-all-resp-best.pdf",width=12,height=6)
+ggsave(file="./analysis/graphs/joint-plot-all-resp-best.png",width=12,height=6)
+```
+
+### response time - 1F and 2F
+```{r}
+(plot.gender.rt.mean.joint + plot.ease.rt.mean.joint) /
+(plot.sharp.rt.mean.joint + plot.express.rt.mean.joint) +
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "",
+    tag_suffix = "",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) +
+  plot_layout(guides = "collect") &
+  theme(
+    axis.title.x = element_text(size = 6),
+    axis.title.y = element_text(size = 4),
+    axis.text.x  = element_text(size = 6),
+    axis.text.y  = element_text(size = 5),
+    plot.title   = element_text(size = 7),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 6),
+    legend.position = "bottom")
+
+ggsave(file="./analysis/graphs/joint-plot-rt-mean.pdf",width=7,height=5)
+ggsave(file="./analysis/graphs/joint-plot-rt-mean.png",width=7,height=5)
+```
+
+### response time - all talkers
+```{r}
+(plot.gender.rt.mean.joint.all + plot.ease.rt.mean.joint.all) /
+(plot.sharp.rt.mean.joint.all + plot.express.rt.mean.joint.all) +
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "",
+    tag_suffix = "",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) +
+  plot_layout(guides = "collect") &
+  theme(
+    axis.title.x = element_text(size = 6),
+    axis.title.y = element_text(size = 4),
+    axis.text.x  = element_text(size = 6),
+    axis.text.y  = element_text(size = 5),
+    plot.title   = element_text(size = 7),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 6),
+    legend.position = "bottom")
+
+ggsave(file="./analysis/graphs/joint-plot-all-rt-mean.pdf",width=7,height=5)
+ggsave(file="./analysis/graphs/joint-plot-all-rt-mean.png",width=7,height=5)
+```
+
+### response time - all talkers
+```{r}
+plot.gender.rt.trend.joint.all <- plot.gender.rt.trend.joint.all + labs(title = NULL)
+plot.ease.rt.trend.joint.all <- plot.ease.rt.trend.joint.all + labs(title = NULL)
+plot.sharp.rt.trend.joint.all <- plot.sharp.rt.trend.joint.all + labs(title = NULL)
+plot.express.rt.trend.joint.all <- plot.express.rt.trend.joint.all + labs(title = NULL)
+
+(plot.gender.rt.trend.joint.all + plot.ease.rt.trend.joint.all) /
+(plot.sharp.rt.trend.joint.all + plot.express.rt.trend.joint.all) +
+  plot_annotation("Mean Response Times by Trial, Talker, and Talker Set", 
+    tag_levels = "a",
+    tag_prefix = "",
+    tag_suffix = "",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14),
+      plot.title = element_text(size = 14)
+    )
+  ) +
+  plot_layout(guides = "collect") &
+  theme(
+    axis.title.x = element_text(size = 6),
+    axis.title.y = element_text(size = 4),
+    axis.text.x  = element_text(size = 6),
+    axis.text.y  = element_text(size = 5),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 6),
+    strip.text = element_text(size = 6),
+    legend.position = "bottom") 
+
+ggsave(file="./analysis/graphs/joint-plot-all-rt-trend.pdf",width=7,height=5)
+ggsave(file="./analysis/graphs/joint-plot-all-rt-trend.png",width=7,height=5)
+```
+
+## 2B Models
+### feminine / masculine
+```{r}
+fit.gender2b <- glmer(formula = response_fem ~ 1 + talker + 
+                      scale(trial_in_block_recode) +
+                       (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   family = "binomial",
+                   data = df.gender2b)
+
+summary(fit.gender2b)
+
+emmeans(fit.gender2b, 
+        specs = pairwise ~ talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.gender.rt2b <- lmer(formula = rt ~ 1 + talker*scale(trial_in_block_recode) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = df.gender2b)
+
+summary(fit.gender.rt2b)
+
+emmeans(fit.gender.rt2b, 
+        specs = pairwise ~ talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.gender.logrt2b <- lmer(formula = log_rt ~ 1 + talker*scale(trial_in_block_recode) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = df.gender2b)
+
+summary(fit.gender.logrt2b)
+
+emmeans(fit.gender.logrt2b, 
+        specs = pairwise ~ talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+```
+
+### comfortable / awkward
+```{r}
+fit.ease2b <- glmer(formula = response_com ~ 1 + talker +
+                    scale(trial_in_block_recode) +
+                       (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   family = "binomial",
+                   data = df.ease2b)
+
+summary(fit.ease2b)
+
+emmeans(fit.ease2b, 
+        specs = pairwise ~ talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.ease.rt2b <- lmer(formula = rt ~ 1 + talker*scale(trial_in_block_recode) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = df.ease2b)
+
+summary(fit.ease.rt2b)
+
+emmeans(fit.ease.rt2b, 
+        specs = pairwise ~ talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.ease.logrt2b <- lmer(formula = log_rt ~ 1 + talker*scale(trial_in_block_recode) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = df.ease2b)
+
+summary(fit.ease.logrt2b)
+
+emmeans(fit.ease.logrt2b, 
+        specs = pairwise ~ talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+```
+
+### sharp / dull
+```{r}
+fit.sharp2b <- glmer(formula = response_sharp ~ 1 + talker +
+                       scale(trial_in_block_recode) +
+                       (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   family = "binomial",
+                   data = df.sharp2b)
+
+summary(fit.sharp2b)
+
+emmeans(fit.sharp2b, 
+        specs = pairwise ~ talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.sharp.rt2b <- lmer(formula = rt ~ 1 + talker*scale(trial_in_block_recode) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = df.sharp2b)
+
+summary(fit.sharp.rt2b)
+
+emmeans(fit.sharp.rt2b, 
+        specs = pairwise ~ talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.sharp.logrt2b <- lmer(formula = log_rt ~ 1 + talker*scale(trial_in_block_recode) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = df.sharp2b)
+
+summary(fit.sharp.logrt2b)
+
+emmeans(fit.sharp.logrt2b, 
+        specs = pairwise ~ talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+```
+
+### emotive / robotic
+```{r}
+fit.express2b <- glmer(formula = response_emo ~ 1 + talker +
+                       scale(trial_in_block_recode) +
+                       (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   family = "binomial",
+                   data = df.express2b)
+
+summary(fit.express2b)
+
+emmeans(fit.express2b, 
+        specs = pairwise ~ talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.express.rt2b <- lmer(formula = rt ~ 1 + talker*scale(trial_in_block_recode) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = df.express2b)
+
+summary(fit.express.rt2b)
+
+emmeans(fit.express.rt2b, 
+        specs = pairwise ~ talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.express.logrt2b <- lmer(formula = log_rt ~ 1 + talker*scale(trial_in_block_recode) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = df.express2b)
+
+summary(fit.express.logrt2b)
+
+emmeans(fit.express.logrt2b, 
+        specs = pairwise ~ talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+```
+
+### response times over all response item pairs
+```{r}
+fit.all.rt2b <- lmer(formula = rt ~ 1 + talker*dimension*scale(trial_in_block_recode) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = df.trials2b)
+
+summary(fit.all.rt2b)
+
+emmeans(fit.all.rt2b, 
+        specs = pairwise ~ dimension,
+        lmerTest.limit = 46919) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.all.rt2b, 
+        specs = pairwise ~ talker | dimension,
+        lmerTest.limit = 46919) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.all.logrt2b <- lmer(formula = log_rt ~ 1 + talker*dimension*scale(trial_in_block_recode) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = df.trials2b)
+
+summary(fit.all.logrt2b)
+
+emmeans(fit.all.logrt2b, 
+        specs = pairwise ~ dimension,
+        lmerTest.limit = 46919) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.all.logrt2b, 
+        specs = pairwise ~ talker | dimension,
+        lmerTest.limit = 46919) %>% 
+  pluck("contrasts") %>%
+  summary()
+```
+
+## Joint Models
+### feminine / masculine
+```{r}
+fit.gender <- glmer(formula = response_fem ~ 1 + talker*study + 
+                      scale(trial_in_block_recode) + 
+                      scale(milliseconddur) +
+                       (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   family = "binomial",
+                   data = filter(df.gender, 
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.gender)
+
+emmeans(fit.gender, 
+        specs = pairwise ~ talker | study) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.gender, 
+        specs = pairwise ~ study | talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.gender.rt <- lmer(formula = rt ~ 1 + talker*study*scale(trial_in_block_recode) +
+                        scale(milliseconddur) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = filter(df.gender,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.gender.rt)
+
+emmeans(fit.gender.rt, 
+        specs = pairwise ~ talker | study) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.gender.rt, 
+        specs = pairwise ~ study | talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.gender.logrt <- lmer(formula = log_rt ~ 1 + talker*study*scale(trial_in_block_recode) +
+                           scale(milliseconddur) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = filter(df.gender,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.gender.logrt)
+
+emmeans(fit.gender.logrt, 
+        specs = pairwise ~ talker | study) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.gender.logrt, 
+        specs = pairwise ~ study | talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+```
+
+### comfortable / awkward
+```{r}
+fit.ease <- glmer(formula = response_com ~ 1 + talker*study +
+                    scale(trial_in_block_recode) +
+                    scale(milliseconddur) +
+                       (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   family = "binomial",
+                   data = filter(df.ease,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.ease)
+
+emmeans(fit.ease, 
+        specs = pairwise ~ talker | study) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.ease, 
+        specs = pairwise ~ study | talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.ease.rt <- lmer(formula = rt ~ 1 + talker*study*scale(trial_in_block_recode) +
+                      scale(milliseconddur) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = filter(df.ease,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.ease.rt)
+
+emmeans(fit.ease.rt, 
+        specs = pairwise ~ talker | study,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.ease.rt, 
+        specs = pairwise ~ study | talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.ease.logrt <- lmer(formula = log_rt ~ 1 + talker*study*scale(trial_in_block_recode) +
+                           scale(milliseconddur) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = filter(df.ease,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.ease.logrt)
+
+emmeans(fit.ease.logrt, 
+        specs = pairwise ~ talker | study) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.ease.logrt, 
+        specs = pairwise ~ study | talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+```
+
+### sharp / dull
+```{r}
+fit.sharp <- glmer(formula = response_sharp ~ 1 + talker*study +
+                       scale(trial_in_block_recode) +
+                     scale(milliseconddur) +
+                       (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   family = "binomial",
+                   data = filter(df.sharp,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.sharp)
+
+emmeans(fit.sharp, 
+        specs = pairwise ~ talker | study) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.sharp, 
+        specs = pairwise ~ study | talker) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.sharp.rt <- lmer(formula = rt ~ 1 + talker*study*scale(trial_in_block_recode) +
+                       scale(milliseconddur) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = filter(df.sharp,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.sharp.rt)
+
+emmeans(fit.sharp.rt, 
+        specs = pairwise ~ talker | study,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.sharp.rt, 
+        specs = pairwise ~ study | talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.sharp.logrt <- lmer(formula = log_rt ~ 1 + talker*study*scale(trial_in_block_recode) +
+                       scale(milliseconddur) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = filter(df.sharp,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.sharp.logrt)
+
+emmeans(fit.sharp.logrt, 
+        specs = pairwise ~ talker | study,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.sharp.logrt, 
+        specs = pairwise ~ study | talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+```
+
+### emotive / robotic
+```{r}
+fit.express <- glmer(formula = response_emo ~ 1 + talker*study +
+                       scale(trial_in_block_recode) +
+                       scale(milliseconddur) +
+                       (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   family = "binomial",
+                   data = filter(df.express,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.express)
+
+emmeans(fit.express, 
+        specs = pairwise ~ talker | study) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.express, 
+        specs = pairwise ~ study | talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.express.rt <- lmer(formula = rt ~ 1 + talker*study*scale(trial_in_block_recode) +
+                         scale(milliseconddur) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = filter(df.express,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.express.rt)
+
+emmeans(fit.express.rt, 
+        specs = pairwise ~ talker | study,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.express.rt, 
+        specs = pairwise ~ study | talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+fit.express.logrt <- lmer(formula = log_rt ~ 1 + talker*study*scale(trial_in_block_recode) +
+                         scale(milliseconddur) +
+                         (1 | subject_id) +
+                       (1 | sentence_id) +
+                       (1 | block_index),
+                   data = filter(df.express,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.express.logrt)
+
+emmeans(fit.express.logrt, 
+        specs = pairwise ~ talker | study,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.express.logrt, 
+        specs = pairwise ~ study | talker,
+        lmerTest.limit = 11569) %>% 
+  pluck("contrasts") %>%
+  summary()
+```
+
+### response times over all response item pairs
+```{r}
+fit.all.rt <- lmer(formula = rt ~ 1 + talker*dimension*study*scale(trial_in_block_recode) +
+                     scale(milliseconddur) +
+                         (1 | subject_id) +
+                       (1 | sentence_id), #+
+                       #(1 | block_index),
+                   data = filter(df.joint,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.all.rt)
+
+emmeans(fit.all.rt, 
+        specs = pairwise ~ study | dimension*talker,
+        lmerTest.limit = 46919) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.all.rt, 
+        specs = pairwise ~ talker | dimension*study,
+        lmerTest.limit = 46919) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+## log rt
+
+fit.all.logrt <- lmer(formula = log_rt ~ 1 + talker*dimension*study*scale(trial_in_block_recode) +
+                     scale(milliseconddur) +
+                         (1 | subject_id) +
+                       (1 | sentence_id), #+
+                       #(1 | block_index),
+                   data = filter(df.joint,
+                                 talker == "1F" | talker == "2F"))
+
+summary(fit.all.logrt)
+
+emmeans(fit.all.logrt, 
+        specs = pairwise ~ study | dimension*talker,
+        lmerTest.limit = 46919) %>% 
+  pluck("contrasts") %>%
+  summary()
+
+emmeans(fit.all.logrt, 
+        specs = pairwise ~ talker | dimension*study,
+        lmerTest.limit = 46919) %>% 
+  pluck("contrasts") %>%
+  summary()
+```
+
+## Exploratory Analysis - 2B
+### tidying up 
+```{r}
+prev_talker.labs <- c("Prev: 1F", "Prev: 2F", "Prev: 1M", "Prev: 2M")
+names(prev_talker.labs) <- c("1F", "2F", "1M", "2M")
+```
+
+### feminine / masculine
+#### response by prev_talker
+```{r}
+plot.gender.resp.expl <- df.gender2b %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = response_fem,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Feminine'",
+       title = "Mean Feminine/Masculine Responses by Talker") + 
+  facet_grid(~prev_talker,
+             labeller = labeller(prev_talker = prev_talker.labs)) +
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-gender-resp-expl.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-gender-resp-expl.png",width=7,height=4)
+
+print(plot.gender.resp.expl)
+```
+
+#### response by trial
+```{r}
+# trend within block + indiv obs
+plot.gender.trial.expl <- df.gender %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = response_fem, 
+                       group = talker,
+                       color = talker)) + 
+  geom_smooth(se = T) +
+  coord_cartesian(ylim = c(0,1)) +
+  facet_grid(study~block_rel) +
+  labs(x = "Within-Block Trial #",
+       y = "Mean Proportion 'Feminine'",
+       title = "Mean Feminine/Masculine Responses by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-gender-trial-expl.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-gender-trial-expl.png",width=7,height=4)
+
+print(plot.gender.trial.expl)
+```
+
+
+### comfortable / awkward
+#### response by prev_talker
+```{r}
+plot.ease.resp.expl <- df.ease2b %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = response_com,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Comfortable'",
+       title = "Mean Comfortable/Awkward Responses by Talker") + 
+  facet_grid(~prev_talker,
+             labeller = labeller(prev_talker = prev_talker.labs)) +
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-ease-resp-expl.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-ease-resp-expl.png",width=7,height=4)
+
+print(plot.ease.resp.expl)
+```
+
+#### response by trial
+```{r}
+# trend within block + indiv obs
+plot.ease.trial.expl <- df.ease %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = response_com, 
+                       group = talker,
+                       color = talker)) + 
+  geom_smooth(se = T) +
+  coord_cartesian(ylim = c(0,1)) +
+  facet_grid(study~block_rel) +
+  labs(x = "Within-Block Trial #",
+       y = "Mean Proportion 'Comfortable'",
+       title = "Mean Comfortable/Awkward Responses by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-ease-trial-expl.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-ease-trial-expl.png",width=7,height=4)
+
+print(plot.ease.trial.expl)
+```
+
+### sharp / dull
+#### response by prev_talker
+```{r}
+plot.sharp.resp.expl <- df.sharp2b %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = response_sharp,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Sharp'",
+       title = "Mean Sharp/Dull Responses by Talker") + 
+  facet_grid(~prev_talker,
+             labeller = labeller(prev_talker = prev_talker.labs)) +
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-sharp-resp-expl.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-sharp-resp-expl.png",width=7,height=4)
+
+print(plot.sharp.resp.expl)
+```
+
+#### response by trial
+```{r}
+# trend within block + indiv obs
+plot.sharp.trial.expl <- df.sharp %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = response_sharp, 
+                       group = talker,
+                       color = talker)) + 
+  geom_smooth(se = T) +
+  coord_cartesian(ylim = c(0,1)) +
+  facet_grid(study~block_rel) +
+  labs(x = "Within-Block Trial #",
+       y = "Mean Proportion 'Sharp'",
+       title = "Mean Sharp/Dull Responses by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-sharp-trial-expl.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-sharp-trial-expl.png",width=7,height=4)
+
+print(plot.sharp.trial.expl)
+```
+
+### emotive / robotic
+#### response by prev_talker
+```{r}
+plot.express.resp.expl <- df.express2b %>%
+  ggplot(mapping = aes(x = talker, 
+                       y = response_emo,
+                       fill = talker)) +
+  stat_summary(fun = "mean",
+               geom = "bar") + 
+  stat_summary(fun.data = "mean_cl_boot",
+               geom = "linerange") + 
+  coord_cartesian(ylim = c(0,1)) +
+  labs(x = "Talker",
+       y = "Mean Proportion 'Emotive'",
+       title = "Mean Emotive/Robotic Responses by Talker") + 
+  facet_grid(~prev_talker,
+             labeller = labeller(prev_talker = prev_talker.labs)) +
+  scale_fill_manual(values = cbPalette,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/2b-plot-express-resp-expl.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/2b-plot-express-resp-expl.png",width=7,height=4)
+
+print(plot.express.resp.expl)
+```
+
+#### response by trial
+```{r}
+# trend within block + indiv obs
+plot.express.trial.expl <- df.express %>% 
+  ggplot(mapping = aes(x = trial_in_block_recode, 
+                       y = response_emo, 
+                       group = talker,
+                       color = talker)) + 
+  geom_smooth(se = T) +
+  coord_cartesian(ylim = c(0,1)) +
+  facet_grid(study~block_rel) +
+  labs(x = "Within-Block Trial #",
+       y = "Mean Proportion 'Emotive'",
+       title = "Mean Emotive/Robotic Responses by Talker and Trial") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+ggsave(file="./analysis/graphs/joint-plot-express-trial-expl.pdf",width=7,height=4)
+ggsave(file="./analysis/graphs/joint-plot-express-trial-expl.png",width=7,height=4)
+
+print(plot.express.trial.expl)
+```
+
+### extremity stuff
+```{r}
+# Calculate extremity (distance from chance)
+df.extremes.gender <- df.gender %>%
+  group_by(study, subject_id, talker) %>%
+  summarise(
+    mean_rt = mean(rt, na.rm = TRUE),
+    proportion = mean(response_fem), # assuming binary 0/1
+    extremity = abs(proportion - 0.5),
+    .groups = "drop"
+  )
+
+df.extremes.ease <- df.ease %>%
+  group_by(study, subject_id, talker) %>%
+  summarise(
+    mean_rt = mean(rt, na.rm = TRUE),
+    proportion = mean(response_com), # assuming binary 0/1
+    extremity = abs(proportion - 0.5),
+    .groups = "drop"
+  )
+
+df.extremes.sharp <- df.sharp %>%
+  group_by(study, subject_id, talker) %>%
+  summarise(
+    mean_rt = mean(rt, na.rm = TRUE),
+    proportion = mean(response_sharp), # assuming binary 0/1
+    extremity = abs(proportion - 0.5),
+    .groups = "drop"
+  )
+
+df.extremes.express <- df.express %>%
+  group_by(study, subject_id, talker) %>%
+  summarise(
+    mean_rt = mean(rt, na.rm = TRUE),
+    proportion = mean(response_emo), # assuming binary 0/1
+    extremity = abs(proportion - 0.5),
+    .groups = "drop"
+  )
+
+# Correlations by response pair
+correlations.gender <- df.extremes.gender %>%
+  group_by(study) %>%
+  summarise(
+    r = cor(extremity, mean_rt, use = "complete.obs"),
+    p = cor.test(extremity, mean_rt)$p.value,
+    n = n()
+  )
+
+correlations.ease <- df.extremes.ease %>%
+  group_by(study) %>%
+  summarise(
+    r = cor(extremity, mean_rt, use = "complete.obs"),
+    p = cor.test(extremity, mean_rt)$p.value,
+    n = n()
+  )
+
+correlations.sharp <- df.extremes.sharp %>%
+  group_by(study) %>%
+  summarise(
+    r = cor(extremity, mean_rt, use = "complete.obs"),
+    p = cor.test(extremity, mean_rt)$p.value,
+    n = n()
+  )
+
+correlations.express <- df.extremes.express %>%
+  group_by(study) %>%
+  summarise(
+    r = cor(extremity, mean_rt, use = "complete.obs"),
+    p = cor.test(extremity, mean_rt)$p.value,
+    n = n()
+  )
+
+print(correlations.gender)
+print(correlations.ease)
+print(correlations.sharp)
+print(correlations.express)
+```
+
+```{r}
+plot.gender.extreme <- ggplot(data = filter(df.extremes.gender,
+                                             talker == "1F" | talker == "2F"), 
+                              mapping = aes(x = extremity, 
+                                            y = mean_rt, 
+                                            color = talker)) +
+  geom_point(alpha = 0.5,
+             position = position_jitter(width = 0.01)) + 
+  geom_smooth(method = "lm", 
+              color = "black") + 
+  facet_grid(~study) + 
+  coord_cartesian(ylim = c(300, 3500)) + 
+  labs(x = "Extremity (Distance from Average At-Chance 'Feminine' Response)",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Response Times Predicted by Extremity") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+plot.ease.extreme <- ggplot(data = filter(df.extremes.ease,
+                                             talker == "1F" | talker == "2F"), 
+                              mapping = aes(x = extremity, 
+                                            y = mean_rt, 
+                                            color = talker)) +
+  geom_point(alpha = 0.5,
+             position = position_jitter(width = 0.01)) + 
+  geom_smooth(method = "lm", 
+              color = "black") + 
+  facet_grid(~study) + 
+  coord_cartesian(ylim = c(300, 3500)) +
+  labs(x = "Extremity (Distance from Average At-Chance 'Comfortable' Response)",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Response Times Predicted by Extremity") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+plot.sharp.extreme <- ggplot(data = filter(df.extremes.sharp,
+                                             talker == "1F" | talker == "2F"), 
+                              mapping = aes(x = extremity, 
+                                            y = mean_rt, 
+                                            color = talker)) +
+  geom_point(alpha = 0.5,
+             position = position_jitter(width = 0.01)) + 
+  geom_smooth(method = "lm", 
+              color = "black") + 
+  facet_grid(~study) + 
+  coord_cartesian(ylim = c(300, 3500)) +
+  labs(x = "Extremity (Distance from Average At-Chance 'Sharp' Response)",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Response Times Predicted by Extremity") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+
+plot.express.extreme <- ggplot(data = filter(df.extremes.express,
+                                             talker == "1F" | talker == "2F"),
+                              mapping = aes(x = extremity, 
+                                            y = mean_rt, 
+                                            color = talker)) +
+  geom_point(alpha = 0.5,
+             position = position_jitter(width = 0.01)) + 
+  geom_smooth(method = "lm", 
+              color = "black") + 
+  facet_grid(~study) + 
+  coord_cartesian(ylim = c(300, 3500)) +
+  labs(x = "Extremity (Distance from Average At-Chance 'Emotive' Response)",
+       y = "Mean Response Time from Stimulus Onset (ms)",
+       title = "Mean Response Times Predicted by Extremity") + 
+  scale_color_manual(values = cbPalette2,
+                    name = "Talker")
+  
+```
+
+
+```{r}
+(plot.gender.extreme + plot.ease.extreme) /
+(plot.sharp.extreme + plot.express.extreme) +
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "",
+    tag_suffix = "",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) +
+  plot_layout(guides = "collect") &
+  theme(
+    axis.title.x = element_text(size = 6),
+    axis.title.y = element_text(size = 4),
+    axis.text.x  = element_text(size = 6),
+    axis.text.y  = element_text(size = 5),
+    plot.title   = element_text(size = 0),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 6),
+    strip.text = element_text(size = 6),
+    legend.position = "bottom")
+
+ggsave(file="./analysis/graphs/joint-plot-extreme.pdf",width=9,height=5)
+ggsave(file="./analysis/graphs/joint-plot-extreme.png",width=9,height=5)
+```
+
+### response variability over trials 
+```{r}
+# Step 1: Identify first and last quartile of trials within each block
+df.gender.position <- df.gender %>%
+  group_by(subject_id, talker, study, block_rel) %>%
+  arrange(trial_in_block_recode) %>%  # Make sure trials are in order
+  mutate(
+    trial_number_in_block = row_number(),
+    total_trials_in_block = n(),
+    # Determine if trial is in first or last quartile
+    position = case_when(
+      trial_number_in_block <= ceiling(total_trials_in_block * 0.25) ~ "first_quart",
+      trial_number_in_block > floor(total_trials_in_block * 0.75) ~ "last_quart",
+      TRUE ~ "middle"
+    )
+  ) %>%
+  ungroup() %>%
+  # Keep only first and last quartile
+  filter(position %in% c("first_quart", "last_quart"))
+
+df.gender.part.var <- df.gender.position %>%
+  group_by(subject_id, talker, study, block_rel, position) %>%
+  summarise(
+    mean_within = mean(response_fem),
+    sd_within = sd(response_fem),
+    cv_within = (sd(response_fem, na.rm = TRUE) / mean(response_fem, na.rm = TRUE)) * 100,
+    .groups = 'drop'
+  ) 
+df.gender.part.ag <- df.gender.part.var %>%
+  group_by(talker, study, position) %>%
+  summarise(
+    mean_mean_within = mean(mean_within, na.rm = TRUE),
+    mean_within_sd = mean(sd_within, na.rm = TRUE),
+    .groups = 'drop'
+  )
+
+# Step 2: Calculate mean proportion for each participant-talker-study-response_type-quartile combination
+df.gender.pos.ag <- df.gender.position %>%
+  group_by(subject_id, talker, study, block_rel, position) %>%
+  summarise(
+    proportion = mean(response_fem, na.rm = TRUE),
+    .groups = 'drop'
+  )
+
+# Step 3: Calculate variability (SD or variance) for each talker-study-response_type-quartile combination
+df.gender.var <- df.gender.pos.ag %>%
+  group_by(talker, study, block_rel, position) %>%
+  summarise(
+    mean_proportion = mean(proportion, na.rm = TRUE),
+    sd_proportion = sd(proportion, na.rm = TRUE),
+    variance = var(proportion, na.rm = TRUE),
+    n_participants = n(),
+    se = sd_proportion / sqrt(n_participants),
+    .groups = 'drop'
+  )
+
+# Step 6: Visualize variability - Option 3: Violin plots with points
+library(ggdist)
+
+df.gender.pos.ag %>% 
+  ggplot(aes(x = position, y = proportion, fill = position)) +
+  stat_halfeye(
+    adjust = 1,
+    width = 0.6,
+    .width = 0,
+    justification = -0.2,
+    point_colour = NA
+  ) +
+  geom_boxplot(
+    width = 0.12,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  geom_point(
+    position = position_jitter(width = 0.05, height = 0, seed = 123),
+    alpha = 0.3,
+    size = 1
+  ) +
+  facet_grid(study ~ talker) +
+  labs(
+    x = "Block Position",
+    y = "Proportion",
+    title = "Response Variability: First vs Last Quartile"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(size = 8)
+  )
+
+# Step 7: Visualize variability - Option 4: Line plot showing change in variability
+ggplot(df.gender.var, 
+       aes(x = position, y = sd_proportion, 
+           color = talker, group = talker)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 3) +
+  facet_grid(study ~ block_rel) +
+  labs(
+    x = "Block Position",
+    y = "Standard Deviation",
+    color = "Talker",
+    title = "Change in Variability from First to Last Quartile"
+  ) +
+  theme_minimal()
+
+```
+
+
+```{r}
+# Step 1: Calculate within-participant variability
+df.gender.position <- df.gender %>%
+  group_by(subject_id, talker, study, block_rel) %>%
+  arrange(trial_in_block_recode) %>%  # Make sure trials are in order
+  mutate(
+    trial_number_in_block = row_number(),
+    total_trials_in_block = n(),
+    # Determine if trial is in first or last quartile
+    position = case_when(
+      trial_number_in_block <= ceiling(total_trials_in_block * 0.25) ~ "first_quart",
+      trial_number_in_block > floor(total_trials_in_block * 0.75) ~ "last_quart",
+      TRUE ~ "middle"
+    )
+  ) %>%
+  ungroup() %>%
+  # Keep only first and last quartile
+  filter(position %in% c("first_quart", "last_quart"))
+
+df.gender.part.var <- df.gender.position %>%
+  group_by(subject_id, talker, study, block_rel, position) %>%
+  summarise(
+    mean_response = mean(response_fem),
+    sd_response = sd(response_fem),
+    .groups = 'drop'
+  ) 
+
+# Step 2: Calculate group-level means and SDs
+df.gender.part.sum <- df.gender.part.var %>%
+  group_by(talker, study, position) %>%
+  summarise(
+    mean_of_means = mean(mean_response, na.rm = TRUE),
+    mean_of_sds = mean(sd_response, na.rm = TRUE),
+    se_of_means = sd(mean_response, na.rm = TRUE) / sqrt(n()),
+    se_of_sds = sd(sd_response, na.rm = TRUE) / sqrt(n()),
+    .groups = 'drop'
+  )
+
+plot.gender.mean.expl <- ggplot(df.gender.part.sum, 
+                 aes(x = talker, y = mean_of_means, fill = position)) +
+  geom_col(position = position_dodge(width = 0.8), alpha = 0.7) +
+  facet_grid(~study,
+             scales = "free_x") +
+  labs(x = "Talker", y = "Mean Response", fill = "Quartile") +
+  theme_minimal()
+
+plot.gender.sd.expl <- ggplot(df.gender.part.sum, 
+               aes(x = talker, y = mean_of_sds, fill = position)) +
+  geom_col(position = position_dodge(width = 0.8), alpha = 0.7) +
+  facet_grid(~study,
+             scales = "free_x") +
+  coord_cartesian(ylim = c(0,0.35)) +
+  labs(x = "Talker", 
+       y = "Response Variability (SD)", 
+       fill = "Quartile", 
+       title = "Feminine/Masculine Trials") 
+
+plot.gender.mean.expl / plot.gender.sd.expl + plot_layout(guides = "collect")
+```
+
+```{r}
+# Step 1: Calculate within-participant variability
+df.ease.position <- df.ease %>%
+  group_by(subject_id, talker, study, block_rel) %>%
+  arrange(trial_in_block_recode) %>%  # Make sure trials are in order
+  mutate(
+    trial_number_in_block = row_number(),
+    total_trials_in_block = n(),
+    # Determine if trial is in first or last quartile
+    position = case_when(
+      trial_number_in_block <= ceiling(total_trials_in_block * 0.25) ~ "first_quart",
+      trial_number_in_block > floor(total_trials_in_block * 0.75) ~ "last_quart",
+      TRUE ~ "middle"
+    )
+  ) %>%
+  ungroup() %>%
+  # Keep only first and last quartile
+  filter(position %in% c("first_quart", "last_quart"))
+
+df.ease.part.var <- df.ease.position %>%
+  group_by(subject_id, talker, study, block_rel, position) %>%
+  summarise(
+    mean_response = mean(response_com),
+    sd_response = sd(response_com),
+    .groups = 'drop'
+  ) 
+
+# Step 2: Calculate group-level means and SDs
+df.ease.part.sum <- df.ease.part.var %>%
+  group_by(talker, study, position) %>%
+  summarise(
+    mean_of_means = mean(mean_response, na.rm = TRUE),
+    mean_of_sds = mean(sd_response, na.rm = TRUE),
+    se_of_means = sd(mean_response, na.rm = TRUE) / sqrt(n()),
+    se_of_sds = sd(sd_response, na.rm = TRUE) / sqrt(n()),
+    .groups = 'drop'
+  )
+
+plot.ease.mean.expl <- ggplot(df.ease.part.sum, 
+                 aes(x = talker, y = mean_of_means, fill = position)) +
+  geom_col(position = position_dodge(width = 0.8), alpha = 0.7) +
+  facet_grid(~study,
+             scales = "free_x") +
+  labs(x = "Talker", y = "Mean Response", fill = "Quartile") +
+  theme_minimal()
+
+plot.ease.sd.expl <- ggplot(df.ease.part.sum, 
+               aes(x = talker, y = mean_of_sds, fill = position)) +
+  geom_col(position = position_dodge(width = 0.8), alpha = 0.7) +
+  facet_grid(~study,
+             scales = "free_x") +
+  coord_cartesian(ylim = c(0,0.35)) +
+  labs(x = "Talker", 
+       y = "Variability (SD)", 
+       fill = "Quartile", 
+       title = "Comfortable/Awkward Trials") 
+
+plot.ease.mean.expl / plot.ease.sd.expl + plot_layout(guides = "collect")
+```
+
+```{r}
+# Step 1: Calculate within-participant variability
+df.sharp.position <- df.sharp %>%
+  group_by(subject_id, talker, study, block_rel) %>%
+  arrange(trial_in_block_recode) %>%  # Make sure trials are in order
+  mutate(
+    trial_number_in_block = row_number(),
+    total_trials_in_block = n(),
+    # Determine if trial is in first or last quartile
+    position = case_when(
+      trial_number_in_block <= ceiling(total_trials_in_block * 0.25) ~ "first_quart",
+      trial_number_in_block > floor(total_trials_in_block * 0.75) ~ "last_quart",
+      TRUE ~ "middle"
+    )
+  ) %>%
+  ungroup() %>%
+  # Keep only first and last quartile
+  filter(position %in% c("first_quart", "last_quart"))
+
+df.sharp.part.var <- df.sharp.position %>%
+  group_by(subject_id, talker, study, block_rel, position) %>%
+  summarise(
+    mean_response = mean(response_sharp),
+    sd_response = sd(response_sharp),
+    .groups = 'drop'
+  ) 
+
+# Step 2: Calculate group-level means and SDs
+df.sharp.part.sum <- df.sharp.part.var %>%
+  group_by(talker, study, position) %>%
+  summarise(
+    mean_of_means = mean(mean_response, na.rm = TRUE),
+    mean_of_sds = mean(sd_response, na.rm = TRUE),
+    se_of_means = sd(mean_response, na.rm = TRUE) / sqrt(n()),
+    se_of_sds = sd(sd_response, na.rm = TRUE) / sqrt(n()),
+    .groups = 'drop'
+  )
+
+plot.sharp.mean.expl <- ggplot(df.sharp.part.sum, 
+                 aes(x = talker, y = mean_of_means, fill = position)) +
+  geom_col(position = position_dodge(width = 0.8), alpha = 0.7) +
+  facet_grid(~study,
+             scales = "free_x") +
+  labs(x = "Talker", y = "Mean Response", fill = "Quartile") +
+  theme_minimal()
+
+plot.sharp.sd.expl <- ggplot(df.sharp.part.sum, 
+               aes(x = talker, y = mean_of_sds, fill = position)) +
+  geom_col(position = position_dodge(width = 0.8), alpha = 0.7) +
+  facet_grid(~study,
+             scales = "free_x") +
+  coord_cartesian(ylim = c(0,0.35)) +
+  labs(x = "Talker", 
+       y = "Response Variability (SD)", 
+       fill = "Quartile",
+       title = "Sharp/Dull Trials") 
+
+plot.sharp.mean.expl / plot.sharp.sd.expl + plot_layout(guides = "collect")
+```
+
+```{r}
+# Step 1: Calculate within-participant variability
+df.express.position <- df.express %>%
+  group_by(subject_id, talker, study, block_rel) %>%
+  arrange(trial_in_block_recode) %>%  # Make sure trials are in order
+  mutate(
+    trial_number_in_block = row_number(),
+    total_trials_in_block = n(),
+    # Determine if trial is in first or last quartile
+    position = case_when(
+      trial_number_in_block <= ceiling(total_trials_in_block * 0.25) ~ "first_quart",
+      trial_number_in_block > floor(total_trials_in_block * 0.75) ~ "last_quart",
+      TRUE ~ "middle"
+    )
+  ) %>%
+  ungroup() %>%
+  # Keep only first and last quartile
+  filter(position %in% c("first_quart", "last_quart"))
+
+df.express.part.var <- df.express.position %>%
+  group_by(subject_id, talker, study, block_rel, position) %>%
+  summarise(
+    mean_response = mean(response_emo),
+    sd_response = sd(response_emo),
+    .groups = 'drop'
+  ) 
+
+# Step 2: Calculate group-level means and SDs
+df.express.part.sum <- df.express.part.var %>%
+  group_by(talker, study, position) %>%
+  summarise(
+    mean_of_means = mean(mean_response, na.rm = TRUE),
+    mean_of_sds = mean(sd_response, na.rm = TRUE),
+    se_of_means = sd(mean_response, na.rm = TRUE) / sqrt(n()),
+    se_of_sds = sd(sd_response, na.rm = TRUE) / sqrt(n()),
+    .groups = 'drop'
+  )
+
+plot.express.mean.expl <- ggplot(df.express.part.sum, 
+                 aes(x = talker, y = mean_of_means, fill = position)) +
+  geom_col(position = position_dodge(width = 0.8), alpha = 0.7) +
+  facet_grid(~study,
+             scales = "free_x") +
+  labs(x = "Talker", y = "Mean Response", fill = "Quartile") 
+
+plot.express.sd.expl <- ggplot(df.express.part.sum, 
+               aes(x = talker, y = mean_of_sds, fill = position)) +
+  geom_col(position = position_dodge(width = 0.8), alpha = 0.7) +
+  facet_grid(~study,
+             scales = "free_x") +
+  coord_cartesian(ylim = c(0,0.35)) +
+  labs(x = "Talker", 
+       y = "Response Variability (SD)", 
+       fill = "Quartile",
+       title = "Emotive/Robotic Trials")
+
+plot.express.mean.expl / plot.express.sd.expl + plot_layout(guides = "collect")
+```
+
+```{r}
+(plot.gender.sd.expl + plot.ease.sd.expl) /
+(plot.sharp.sd.expl + plot.express.sd.expl) +
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "",
+    tag_suffix = "",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) +
+  plot_layout(guides = "collect") &
+  theme(
+    axis.title.x = element_text(size = 7),
+    axis.title.y = element_text(size = 6),
+    axis.text.x  = element_text(size = 7),
+    axis.text.y  = element_text(size = 6),
+    plot.title   = element_text(size = 9),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 7),
+    strip.text = element_text(size = 7),
+    legend.position = "bottom")
+
+ggsave(file="./analysis/graphs/joint-sd-expl.pdf",width=8,height=5)
+ggsave(file="./analysis/graphs/joint-sd-expl.png",width=8,height=5)
+```
+
